@@ -1,0 +1,45 @@
+{
+  "latitude": 40.4083,
+  "longitude": -111.5297,
+  "generationtime_ms": 0.5,
+  "utc_offset_seconds": -21600,
+  "timezone": "America/Denver",
+  "timezone_abbreviation": "MDT",
+  "elevation": 1700.0,
+  "daily_units": {
+    "time": "iso8601",
+    "temperature_2m_max": "°F",
+    "temperature_2m_min": "°F",
+    "precipitation_probability_max": "%",
+    "wind_speed_10m_max": "mp/h",
+    "wind_direction_10m_dominant": "°",
+    "weather_code": "wmo code"
+  },
+  "daily": {
+    "time": ["2024-06-01", "2024-06-02", "2024-06-03", "2024-06-04", "2024-06-05", "2024-06-06", "2024-06-07"],
+    "temperature_2m_max": [85.0, 88.0, 82.0, 79.0, 91.0, 87.0, 83.0],
+    "temperature_2m_min": [60.0, 63.0, 58.0, 55.0, 65.0, 62.0, 59.0],
+    "precipitation_probability_max": [10, 20, 5, 0, 30, 15, 8],
+    "wind_speed_10m_max": [8.5, 12.0, 6.0, 9.0, 15.0, 10.0, 7.5],
+    "wind_direction_10m_dominant": [225.0, 270.0, 180.0, 200.0, 250.0, 230.0, 210.0],
+    "weather_code": [1, 2, 0, 1, 95, 3, 1]
+  },
+  "hourly_units": {
+    "time": "iso8601",
+    "temperature_2m": "°F",
+    "wind_speed_10m": "mp/h",
+    "wind_direction_10m": "°",
+    "precipitation_probability": "%",
+    "weather_code": "wmo code",
+    "cape": "J/kg"
+  },
+  "hourly": {
+    "time": ["2024-06-01T00:00", "2024-06-01T01:00", "2024-06-05T12:00"],
+    "temperature_2m": [65.0, 64.0, 88.0],
+    "wind_speed_10m": [5.0, 4.5, 14.0],
+    "wind_direction_10m": [220.0, 225.0, 250.0],
+    "precipitation_probability": [5, 5, 30],
+    "weather_code": [0, 0, 95],
+    "cape": [0.0, 0.0, 800.0]
+  }
+}
