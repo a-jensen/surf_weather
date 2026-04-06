@@ -32,7 +32,9 @@ surf_weather/
 | API | Purpose |
 |-----|---------|
 | [Open-Meteo](https://open-meteo.com) | 7-day weather forecast — single source for all lakes |
-| [USGS NWIS](https://waterservices.usgs.gov) | Water level (gage height) and water temperature |
+| [USGS NWIS](https://api.waterdata.usgs.gov) | Water level (elevation) and water temperature — Bear Lake |
+| [CUWCD](https://api2.cuwcd.gov) | Reservoir percent-full + 30-day history — Deer Creek, Jordanelle, Utah Lake |
+| [Utah State Parks](https://stateparks.utah.gov) | Current water temperature and level % (scraped) — most Utah lakes |
 
 **Internal structure:**
 
@@ -53,7 +55,9 @@ backend/
     │   │   └── open_meteo.py   # Open-Meteo implementation
     │   └── lake_data/
     │       ├── usgs.py         # USGS NWIS implementation
-    │       └── registry.py     # Routes each lake to the right provider (first-match)
+    │       ├── cuwcd.py        # Central Utah Water Conservancy District implementation
+    │       ├── state_parks.py  # Utah State Parks scraper
+    │       └── registry.py     # Routes each lake to conditions + history providers
     ├── routers/
     │   ├── health.py           # GET /health
     │   └── lakes.py            # GET /lakes, GET /lakes/{id}
@@ -115,20 +119,18 @@ frontend/src/
 
 ## Lakes
 
-Configured in `backend/config/lakes.yaml`. Current lakes:
+Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_provider` (used for the tile display and detail banner) and an optional `history_provider` (used for the historical chart).
 
-| Lake | USGS Gauge | Water Data |
-|------|-----------|------------|
-| Deer Creek Reservoir | 10159000 | Level + Temp |
-| Pineview Reservoir | 10139000 | Level + Temp |
-| East Canyon Reservoir | 10134000 | Level + Temp |
-| Rockport Reservoir | 10129400 | Level + Temp |
-| Echo Reservoir | 10131500 | Level + Temp |
-| Bear Lake | 10055000 | Level + Temp |
-| Jordanelle Reservoir | — | N/A (no gauge) |
-| Utah Lake | — | N/A (no gauge) |
-
-Lakes without a USGS gauge still show the full weather forecast; water level and temperature display as N/A.
+| Lake | Conditions | History | Notes |
+|------|-----------|---------|-------|
+| Deer Creek Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
+| Pineview Reservoir | state_parks | — | Temp + level % |
+| East Canyon Reservoir | state_parks | — | Temp + level % |
+| Rockport Reservoir | state_parks | — | Temp + level % |
+| Echo Reservoir | state_parks | — | Temp + level % |
+| Bear Lake | usgs | — | Level (elevation ft) + temp; 90-day history |
+| Jordanelle Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
+| Utah Lake | cuwcd | — | Level % only; 30-day history |
 
 ---
 
@@ -165,8 +167,8 @@ python backend/scripts/lake_data.py deer_creek -p
 # Plot only the last 5 years
 python backend/scripts/lake_data.py deer_creek -p --years 5
 
-# Choose a provider explicitly (currently only usgs is available)
-python backend/scripts/lake_data.py deer_creek --provider usgs
+# List all lakes showing their conditions and history providers
+python backend/scripts/lake_data.py --list-lakes deer_creek
 ```
 
 ### Running via Docker
@@ -277,8 +279,19 @@ Edit `backend/config/lakes.yaml` and add an entry:
   state: UT
   latitude: 37.1067
   longitude: -113.3950
-  usgs_site_id: "09415000"   # or null if no gauge
-  data_provider: usgs
+  usgs_site_id: null
+  conditions_provider: state_parks
+  state_park_slug: sand-hollow
+```
+
+If the lake has both a scraper source (for current conditions) and an automated source (for history), specify both:
+
+```yaml
+- id: my_lake
+  conditions_provider: state_parks   # used for tiles and detail banner
+  history_provider: cuwcd            # used for historical chart
+  state_park_slug: my-lake
+  cuwcd_set_name: public_ml
 ```
 
 Restart the backend container — no code changes required.
@@ -299,7 +312,7 @@ class MyStateProvider(LakeDataProvider):
         return "my_state_provider"
 
     def supports_lake(self, lake: LakeConfig) -> bool:
-        return lake.data_provider == "my_state"
+        return lake.conditions_provider == "my_state"
 
     def get_conditions(self, lake: LakeConfig) -> LakeConditions:
         # fetch from state API and return LakeConditions

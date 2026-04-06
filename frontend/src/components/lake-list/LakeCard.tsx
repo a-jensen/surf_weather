@@ -27,7 +27,7 @@ export function LakeCard({ lake }: Props) {
           </div>
           <div className="text-right text-sm text-gray-600 space-y-1">
             <div>🌡️ Water: <strong>{formatWaterTemp(lake.current_water_temp_c)}</strong></div>
-            <div>📏 Level: <strong>{formatWaterLevel(lake.current_water_level_ft)}</strong></div>
+            <div>📏 Level: <strong>{formatWaterLevel(lake.current_water_level_ft, lake.current_water_level_pct)}</strong></div>
           </div>
         </div>
       </div>

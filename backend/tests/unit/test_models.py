@@ -21,7 +21,7 @@ class TestLakeConfig:
             latitude=40.4083,
             longitude=-111.5297,
             usgs_site_id="10159000",
-            data_provider="usgs",
+            conditions_provider="usgs",
         )
         assert lake.id == "deer_creek"
         assert lake.usgs_site_id == "10159000"
@@ -34,7 +34,7 @@ class TestLakeConfig:
             latitude=40.6097,
             longitude=-111.4203,
             usgs_site_id=None,
-            data_provider="usgs",
+            conditions_provider="usgs",
         )
         assert lake.usgs_site_id is None
 
@@ -46,7 +46,7 @@ class TestLakeConfig:
             latitude=40.0,
             longitude=-111.0,
             usgs_site_id="10159000",
-            data_provider="usgs",
+            conditions_provider="usgs",
         )
         with pytest.raises(Exception):
             lake.id = "other"  # type: ignore[misc]
@@ -55,7 +55,7 @@ class TestLakeConfig:
         lake = LakeConfig(
             id="x", name="X", state="UT",
             latitude=41.0, longitude=-112.0,
-            usgs_site_id=None, data_provider="usgs",
+            usgs_site_id=None, conditions_provider="usgs",
         )
         assert lake.latitude == 41.0
         assert lake.longitude == -112.0
@@ -233,6 +233,7 @@ class TestLakeSummary:
             longitude=-111.5297,
             current_water_temp_c=18.5,
             current_water_level_ft=4712.3,
+            current_water_level_pct=89.0,
             forecast=[self._daily() for _ in range(7)],
         )
         assert s.lake_id == "deer_creek"

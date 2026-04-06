@@ -47,7 +47,7 @@ class StateParksProvider(LakeDataProvider):
         return "ut_state_parks"
 
     def supports_lake(self, lake: LakeConfig) -> bool:
-        return lake.data_provider == "state_parks"
+        return lake.conditions_provider == "state_parks"
 
     def get_conditions(self, lake: LakeConfig) -> LakeConditions:
         slug = lake.state_park_slug

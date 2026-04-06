@@ -36,7 +36,7 @@ class USGSProvider(LakeDataProvider):
         return "usgs_nwis"
 
     def supports_lake(self, lake: LakeConfig) -> bool:
-        return lake.data_provider == "usgs"
+        return lake.conditions_provider == "usgs"
 
     def get_conditions(self, lake: LakeConfig) -> LakeConditions:
         if lake.usgs_site_id is None:

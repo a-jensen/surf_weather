@@ -25,10 +25,11 @@ def load_lakes(path: Path = DEFAULT_LAKES_PATH) -> list[LakeConfig]:
             latitude=float(entry["latitude"]),
             longitude=float(entry["longitude"]),
             usgs_site_id=entry.get("usgs_site_id"),
-            data_provider=entry["data_provider"],
+            conditions_provider=entry["conditions_provider"],
             cuwcd_set_name=entry.get("cuwcd_set_name"),
             state_park_slug=entry.get("state_park_slug"),
             usgs_level_param=entry.get("usgs_level_param", "00065"),
+            history_provider=entry.get("history_provider"),
         )
         for entry in data["lakes"]
     ]

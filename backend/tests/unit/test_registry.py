@@ -34,7 +34,7 @@ class TestLakeDataProviderRegistry:
         return LakeConfig(
             id="test", name="Test Lake", state=state,
             latitude=40.0, longitude=-111.0,
-            usgs_site_id=None, data_provider="usgs",
+            usgs_site_id=None, conditions_provider="usgs",
         )
 
     def test_returns_matching_provider(self):
@@ -74,3 +74,35 @@ class TestLakeDataProviderRegistry:
 
         with pytest.raises(ValueError):
             registry.get_provider(self._lake("UT"))
+
+    def test_get_history_provider_returns_none_when_not_configured(self):
+        registry = LakeDataProviderRegistry()
+        registry.register(_FakeProvider("UT", "ut_provider"))
+        lake = self._lake("UT")  # history_provider is None by default
+
+        assert registry.get_history_provider(lake) is None
+
+    def test_get_history_provider_returns_correct_provider(self):
+        registry = LakeDataProviderRegistry()
+        registry.register(_FakeProvider("UT", "conditions_p"))
+        registry.register(_FakeProvider("UT", "history_p"))
+        lake = LakeConfig(
+            id="test", name="Test", state="UT",
+            latitude=40.0, longitude=-111.0,
+            usgs_site_id=None, conditions_provider="usgs",
+            history_provider="history_p",
+        )
+
+        assert registry.get_history_provider(lake).provider_name == "history_p"
+
+    def test_get_history_provider_returns_none_for_unknown_name(self):
+        registry = LakeDataProviderRegistry()
+        registry.register(_FakeProvider("UT", "some_provider"))
+        lake = LakeConfig(
+            id="test", name="Test", state="UT",
+            latitude=40.0, longitude=-111.0,
+            usgs_site_id=None, conditions_provider="usgs",
+            history_provider="nonexistent",
+        )
+
+        assert registry.get_history_provider(lake) is None

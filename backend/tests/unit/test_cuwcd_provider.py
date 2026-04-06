@@ -18,7 +18,7 @@ def deer_creek() -> LakeConfig:
         latitude=40.4083,
         longitude=-111.5297,
         usgs_site_id=None,
-        data_provider="cuwcd",
+        conditions_provider="cuwcd",
         cuwcd_set_name="public_dc",
     )
 
@@ -32,7 +32,7 @@ def lake_no_set_name() -> LakeConfig:
         latitude=40.0,
         longitude=-111.0,
         usgs_site_id=None,
-        data_provider="cuwcd",
+        conditions_provider="cuwcd",
         cuwcd_set_name=None,
     )
 
@@ -64,13 +64,14 @@ class TestCUWCDProvider:
         assert result.lake_id == "deer_creek"
 
     @respx.mock
-    def test_parses_elevation(self, deer_creek, cuwcd_current_fixture, cuwcd_trend_fixture):
+    def test_water_level_ft_is_none(self, deer_creek, cuwcd_current_fixture, cuwcd_trend_fixture):
+        """CUWCD uses pct full as level; ft elevation is not exposed."""
         respx.get(f"{CUWCD_API_URL}/public_dc").mock(return_value=httpx.Response(200, json=cuwcd_current_fixture))
         respx.get(f"{CUWCD_API_URL}/public_dc_trend").mock(return_value=httpx.Response(200, json=cuwcd_trend_fixture))
 
         result = self.provider.get_conditions(deer_creek)
 
-        assert result.water_level_ft == pytest.approx(5410.5, abs=0.01)
+        assert result.water_level_ft is None
 
     @respx.mock
     def test_parses_pct_full(self, deer_creek, cuwcd_current_fixture, cuwcd_trend_fixture):
@@ -91,16 +92,16 @@ class TestCUWCDProvider:
         assert result.water_temp_c is None
 
     @respx.mock
-    def test_parses_elevation_history(self, deer_creek, cuwcd_current_fixture, cuwcd_trend_fixture):
+    def test_parses_pct_full_history(self, deer_creek, cuwcd_current_fixture, cuwcd_trend_fixture):
         respx.get(f"{CUWCD_API_URL}/public_dc").mock(return_value=httpx.Response(200, json=cuwcd_current_fixture))
         respx.get(f"{CUWCD_API_URL}/public_dc_trend").mock(return_value=httpx.Response(200, json=cuwcd_trend_fixture))
 
         result = self.provider.get_conditions(deer_creek)
 
-        # Trend fixture has 3 elevation entries
+        # Trend fixture has 3 pct_full entries
         assert len(result.water_level_history) == 3
-        assert result.water_level_history[0].value == pytest.approx(5405.0)
-        assert result.water_level_history[-1].value == pytest.approx(5410.5)
+        assert result.water_level_history[0].value == pytest.approx(87.0)
+        assert result.water_level_history[-1].value == pytest.approx(89.05)
 
     @respx.mock
     def test_data_as_of_is_set(self, deer_creek, cuwcd_current_fixture, cuwcd_trend_fixture):

@@ -17,14 +17,14 @@ lakes:
     latitude: 40.4083
     longitude: -111.5297
     usgs_site_id: "10159000"
-    data_provider: usgs
+    conditions_provider: usgs
   - id: jordanelle
     name: Jordanelle Reservoir
     state: UT
     latitude: 40.6097
     longitude: -111.4203
     usgs_site_id: null
-    data_provider: usgs
+    conditions_provider: usgs
 """
 
 
@@ -72,14 +72,28 @@ class TestLoadLakes:
         lakes = load_lakes(path)
         assert lakes[0].state == "UT"
 
-    def test_parses_data_provider(self):
+    def test_parses_conditions_provider(self):
         path = self._write_yaml(SAMPLE_YAML)
         lakes = load_lakes(path)
-        assert lakes[0].data_provider == "usgs"
+        assert lakes[0].conditions_provider == "usgs"
+
+    def test_parses_history_provider_defaults_to_none(self):
+        path = self._write_yaml(SAMPLE_YAML)
+        lakes = load_lakes(path)
+        assert lakes[0].history_provider is None
 
     def test_raises_on_missing_file(self):
         with pytest.raises(FileNotFoundError):
             load_lakes(Path("/nonexistent/path.yaml"))
+
+    def test_parses_history_provider_when_set(self):
+        yaml_with_history = SAMPLE_YAML.replace(
+            "conditions_provider: usgs\n  - id: jordanelle",
+            "conditions_provider: usgs\n    history_provider: cuwcd\n  - id: jordanelle",
+        )
+        path = self._write_yaml(yaml_with_history)
+        lakes = load_lakes(path)
+        assert lakes[0].history_provider == "cuwcd"
 
     def test_loads_actual_lakes_yaml(self):
         actual = Path(__file__).parent.parent.parent / "config" / "lakes.yaml"
@@ -88,3 +102,10 @@ class TestLoadLakes:
         ids = {lake.id for lake in lakes}
         assert "deer_creek" in ids
         assert "jordanelle" in ids
+
+    def test_actual_deer_creek_has_history_provider(self):
+        actual = Path(__file__).parent.parent.parent / "config" / "lakes.yaml"
+        lakes = load_lakes(actual)
+        deer_creek = next(l for l in lakes if l.id == "deer_creek")
+        assert deer_creek.history_provider == "cuwcd"
+        assert deer_creek.conditions_provider == "state_parks"

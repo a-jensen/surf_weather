@@ -49,8 +49,15 @@ export function LakeDetailPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">Water Level — Last 90 Days</h2>
-        <WaterLevelChart history={detail.conditions.water_level_history} />
+        <h2 className="text-lg font-semibold text-gray-700 mb-3">
+          Water Level{detail.conditions.water_level_history.length > 0
+            ? ` — Last ${Math.round((Date.now() - new Date(detail.conditions.water_level_history[0].timestamp).getTime()) / 86400000)} Days`
+            : ''}
+        </h2>
+        <WaterLevelChart
+          history={detail.conditions.water_level_history}
+          unit={detail.conditions.water_level_ft !== null ? 'ft' : '%'}
+        />
       </section>
 
       <section>

@@ -32,7 +32,7 @@ class CUWCDProvider(LakeDataProvider):
         return "cuwcd"
 
     def supports_lake(self, lake: LakeConfig) -> bool:
-        return lake.data_provider == "cuwcd"
+        return lake.conditions_provider == "cuwcd"
 
     def get_conditions(self, lake: LakeConfig) -> LakeConditions:
         if lake.cuwcd_set_name is None:
@@ -49,17 +49,16 @@ class CUWCDProvider(LakeDataProvider):
         current = self._fetch_set(lake.cuwcd_set_name)
         history = self._fetch_set(f"{lake.cuwcd_set_name}_trend")
 
-        level_ft = current.get("elevation_ft")
         level_pct = current.get("pct_full")
         as_of = current.get("as_of")
-        level_history = history.get("elevation_history", [])
+        pct_history = history.get("pct_full_history", [])
 
         return LakeConditions(
             lake_id=lake.id,
             water_temp_c=None,
-            water_level_ft=level_ft,
+            water_level_ft=None,
             water_level_pct=level_pct,
-            water_level_history=level_history,
+            water_level_history=pct_history,
             water_temp_history=[],
             data_as_of=as_of,
             provider_name=self.provider_name,
@@ -72,7 +71,7 @@ class CUWCDProvider(LakeDataProvider):
         if lake.cuwcd_set_name is None:
             return {"levels": [], "temps": [], "latest_level_ft": None, "latest_temp_c": None, "as_of": None}
         parsed = self._fetch_set(f"{lake.cuwcd_set_name}_trend")
-        levels = parsed.get("elevation_history", [])
+        levels = parsed.get("pct_full_history", [])
         return {
             "levels": levels,
             "temps": [],
@@ -90,10 +89,9 @@ class CUWCDProvider(LakeDataProvider):
         return self._parse(resp.json())
 
     def _parse(self, data: dict) -> dict:
-        elevation_ft: float | None = None
         pct_full: float | None = None
         as_of: datetime | None = None
-        elevation_history: list[HistoricalPoint] = []
+        pct_full_history: list[HistoricalPoint] = []
 
         for group in data.get("ReportDataGroups", []):
             for tag in group.get("Tags", []):
@@ -102,11 +100,11 @@ class CUWCDProvider(LakeDataProvider):
                 if not values:
                     continue
 
-                if param == "Elevation" and elevation_ft is None:
+                if param == "Pct Full" and pct_full is None:
                     latest = values[-1]
-                    elevation_ft = float(latest["val"])
+                    pct_full = float(latest["val"])
                     as_of = datetime.fromisoformat(latest["ts"])
-                    elevation_history = [
+                    pct_full_history = [
                         HistoricalPoint(
                             timestamp=datetime.fromisoformat(v["ts"]),
                             value=float(v["val"]),
@@ -115,12 +113,8 @@ class CUWCDProvider(LakeDataProvider):
                         if v.get("val") is not None
                     ]
 
-                elif param == "Pct Full" and pct_full is None:
-                    pct_full = float(values[-1]["val"])
-
         return {
-            "elevation_ft": elevation_ft,
             "pct_full": pct_full,
             "as_of": as_of,
-            "elevation_history": elevation_history,
+            "pct_full_history": pct_full_history,
         }

@@ -31,6 +31,7 @@ def _summary_to_dict(s) -> dict:
         "longitude": s.longitude,
         "current_water_temp_c": s.current_water_temp_c,
         "current_water_level_ft": s.current_water_level_ft,
+        "current_water_level_pct": s.current_water_level_pct,
         "forecast": [_daily_to_dict(d) for d in s.forecast],
     }
 
@@ -52,6 +53,7 @@ def _conditions_to_dict(c) -> dict:
         "lake_id": c.lake_id,
         "water_temp_c": c.water_temp_c,
         "water_level_ft": c.water_level_ft,
+        "water_level_pct": c.water_level_pct,
         "water_level_history": [
             {"timestamp": pt.timestamp.isoformat(), "value": pt.value}
             for pt in c.water_level_history

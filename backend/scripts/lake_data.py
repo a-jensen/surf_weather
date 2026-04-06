@@ -66,7 +66,8 @@ def main(lake_id: str, plot: bool, years: int, list_lakes: bool) -> None:
     if list_lakes:
         click.echo("Available lakes:")
         for l in lakes:
-            click.echo(f"  {l.id:20s}  {l.name}  [{l.data_provider}]")
+            history = f"+{l.history_provider}" if l.history_provider else ""
+            click.echo(f"  {l.id:20s}  {l.name}  [{l.conditions_provider}{history}]")
         return
 
     if lake_id not in lakes_by_id:
@@ -125,7 +126,8 @@ def _plot_historical(lake: LakeConfig, registry: LakeDataProviderRegistry, years
             "matplotlib is required for plotting. Install it with: pip install matplotlib"
         )
 
-    provider = registry.get_provider(lake)
+    # Prefer the dedicated history_provider; fall back to the conditions provider
+    provider = registry.get_history_provider(lake) or registry.get_provider(lake)
 
     # Only USGS and CUWCD support multi-year historical fetches
     if not isinstance(provider, (USGSProvider, CUWCDProvider)):
@@ -143,14 +145,88 @@ def _plot_historical(lake: LakeConfig, registry: LakeDataProviderRegistry, years
     end = date(current_year, 12, 31)
     data = provider.get_historical(lake, start, end)
 
-    level_by_year_month: dict[int, dict[int, list[float]]] = defaultdict(lambda: defaultdict(list))
-    temp_by_year_month: dict[int, dict[int, list[float]]] = defaultdict(lambda: defaultdict(list))
+    levels = data["levels"]
+    temps = data["temps"]
 
-    for pt in data["levels"]:
+    if not levels and not temps:
+        click.echo("No historical data returned for the requested range.")
+        return
+
+    # Determine if data spans the requested range — CUWCD only returns ~30 days
+    # regardless of start/end, so warn and fall back to a raw time-series plot.
+    all_points = levels + temps
+    timestamps = [pt.timestamp for pt in all_points]
+    span_days = (max(timestamps) - min(timestamps)).days
+    requested_days = years * 365
+
+    if span_days < 60:
+        if requested_days > span_days + 7:
+            click.echo(
+                f"Warning: requested {years} year(s) of data but the "
+                f"'{provider.provider_name}' provider only has ~{span_days} days available. "
+                "Showing available data as a time series."
+            )
+        _plot_time_series(lake, levels, temps, plt, mticker)
+    else:
+        _plot_year_over_year(lake, levels, temps, target_years, years, plt, mticker)
+
+
+def _plot_time_series(lake: LakeConfig, levels, temps, plt, mticker) -> None:
+    """Raw daily time-series plot — used when data window is too short for year-over-year."""
+    import matplotlib.dates as mdates
+
+    date_range = (
+        f"{min(pt.timestamp for pt in levels + temps).strftime('%b %d, %Y')}"
+        f" – {max(pt.timestamp for pt in levels + temps).strftime('%b %d, %Y')}"
+    )
+    fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+    fig.suptitle(f"{lake.name} — {date_range}", fontsize=14)
+    ax_temp, ax_level = axes
+
+    has_temp = bool(temps)
+    has_level = bool(levels)
+
+    if has_temp:
+        xs = [pt.timestamp for pt in temps]
+        ys = [c_to_f(pt.value) for pt in temps]
+        ax_temp.plot(xs, ys, marker="o", markersize=3, color="tab:red")
+
+    if has_level:
+        xs = [pt.timestamp for pt in levels]
+        ys = [pt.value for pt in levels]
+        ax_level.plot(xs, ys, marker="o", markersize=3, color="tab:blue")
+
+    level_unit = "% Full" if isinstance(levels[0].value, float) and levels and levels[0].value <= 100 else "ft"
+
+    ax_temp.set_ylabel("Water Temperature (°F)")
+    ax_temp.grid(True, alpha=0.3)
+    ax_level.set_ylabel(f"Water Level ({level_unit})")
+    ax_level.grid(True, alpha=0.3)
+    ax_level.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    ax_level.xaxis.set_major_locator(mdates.AutoDateLocator())
+    fig.autofmt_xdate()
+
+    if not has_temp and not has_level:
+        click.echo("No historical data returned for the requested range.")
+        plt.close(fig)
+        return
+
+    plt.tight_layout()
+    plt.show()
+
+
+def _plot_year_over_year(lake: LakeConfig, levels, temps, target_years, years, plt, mticker) -> None:
+    """Year-over-year monthly averages — used when multiple years of data are available."""
+    from collections import defaultdict as _dd
+
+    level_by_year_month: dict[int, dict[int, list[float]]] = _dd(lambda: _dd(list))
+    temp_by_year_month: dict[int, dict[int, list[float]]] = _dd(lambda: _dd(list))
+
+    for pt in levels:
         if pt.timestamp.year in target_years:
             level_by_year_month[pt.timestamp.year][pt.timestamp.month].append(pt.value)
 
-    for pt in data["temps"]:
+    for pt in temps:
         if pt.timestamp.year in target_years:
             temp_by_year_month[pt.timestamp.year][pt.timestamp.month].append(pt.value)
 

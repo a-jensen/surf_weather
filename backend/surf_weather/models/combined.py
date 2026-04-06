@@ -19,6 +19,7 @@ class LakeSummary:
     current_water_temp_c: Optional[float]
     current_water_level_ft: Optional[float]
     forecast: list[DailyForecast]
+    current_water_level_pct: Optional[float] = None
 
 
 @dataclass(frozen=True)

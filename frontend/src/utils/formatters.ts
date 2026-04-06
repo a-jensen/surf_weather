@@ -16,9 +16,10 @@ export function formatDate(isoDate: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function formatWaterLevel(ft: number | null): string {
-  if (ft === null) return 'N/A'
-  return `${ft.toFixed(1)} ft`
+export function formatWaterLevel(ft: number | null, pct: number | null = null): string {
+  if (ft !== null) return `${ft.toFixed(1)} ft`
+  if (pct !== null) return `${pct.toFixed(1)}% full`
+  return 'N/A'
 }
 
 export function formatWaterTemp(c: number | null): string {

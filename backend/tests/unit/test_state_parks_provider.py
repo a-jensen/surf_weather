@@ -16,7 +16,7 @@ def east_canyon() -> LakeConfig:
         latitude=40.9306,
         longitude=-111.6014,
         usgs_site_id=None,
-        data_provider="state_parks",
+        conditions_provider="state_parks",
         state_park_slug="east-canyon",
     )
 
@@ -30,7 +30,7 @@ def lake_no_slug() -> LakeConfig:
         latitude=40.0,
         longitude=-111.0,
         usgs_site_id=None,
-        data_provider="state_parks",
+        conditions_provider="state_parks",
         state_park_slug=None,
     )
 

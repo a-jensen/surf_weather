@@ -17,6 +17,7 @@ from surf_weather.providers.lake_data.state_parks import STATE_PARKS_BASE
 
 DEER_CREEK_CURRENT_URL = f"{CUWCD_API_URL}/public_dc"
 DEER_CREEK_TREND_URL = f"{CUWCD_API_URL}/public_dc_trend"
+DEER_CREEK_STATE_PARKS_URL = f"{STATE_PARKS_BASE}/deer-creek/current-conditions/"
 EAST_CANYON_URL = f"{STATE_PARKS_BASE}/east-canyon/current-conditions/"
 
 
@@ -25,18 +26,25 @@ def runner():
     return CliRunner()
 
 
-def mock_deer_creek(current_fixture: dict, trend_fixture: dict) -> None:
-    """Register CUWCD mocks for deer_creek (current + trend endpoints)."""
+def mock_deer_creek_state_parks(state_parks_html: str) -> None:
+    """Mock the State Parks current-conditions page for deer_creek."""
+    respx.get(DEER_CREEK_STATE_PARKS_URL).mock(
+        return_value=httpx.Response(200, text=state_parks_html)
+    )
+
+
+def mock_deer_creek_cuwcd(current_fixture: dict, trend_fixture: dict) -> None:
+    """Mock CUWCD endpoints for deer_creek (used for history)."""
     respx.get(DEER_CREEK_CURRENT_URL).mock(return_value=httpx.Response(200, json=current_fixture))
     respx.get(DEER_CREEK_TREND_URL).mock(return_value=httpx.Response(200, json=trend_fixture))
 
 
 class TestLakeDataScriptCurrent:
-    """Default mode: display current conditions for deer_creek (CUWCD provider)."""
+    """Default mode: display current conditions for deer_creek (state_parks provider)."""
 
     @respx.mock
-    def test_shows_lake_name(self, runner, cuwcd_current_fixture, cuwcd_trend_fixture):
-        mock_deer_creek(cuwcd_current_fixture, cuwcd_trend_fixture)
+    def test_shows_lake_name(self, runner, state_parks_html):
+        mock_deer_creek_state_parks(state_parks_html)
 
         result = runner.invoke(main, ["deer_creek"])
 
@@ -44,17 +52,29 @@ class TestLakeDataScriptCurrent:
         assert "Deer Creek" in result.output
 
     @respx.mock
-    def test_shows_water_level_ft(self, runner, cuwcd_current_fixture, cuwcd_trend_fixture):
-        mock_deer_creek(cuwcd_current_fixture, cuwcd_trend_fixture)
+    def test_shows_pct_full_for_deer_creek(self, runner, state_parks_html):
+        mock_deer_creek_state_parks(state_parks_html)
 
         result = runner.invoke(main, ["deer_creek"])
 
         assert result.exit_code == 0, result.output
-        assert "5410.50" in result.output
+        assert "77" in result.output
+        assert "%" in result.output
 
     @respx.mock
-    def test_shows_pct_full_when_no_ft(self, runner, state_parks_html):
-        """State Parks provider (east_canyon) shows % full since ft is unavailable."""
+    def test_shows_water_temperature_for_deer_creek(self, runner, state_parks_html):
+        """State Parks provider returns temperature for deer_creek."""
+        mock_deer_creek_state_parks(state_parks_html)
+
+        result = runner.invoke(main, ["deer_creek"])
+
+        assert result.exit_code == 0, result.output
+        # 52°F → 11.11°C
+        assert "11.1" in result.output
+
+    @respx.mock
+    def test_shows_pct_full_for_east_canyon(self, runner, state_parks_html):
+        """State Parks provider (east_canyon) shows % full."""
         respx.get(EAST_CANYON_URL).mock(return_value=httpx.Response(200, text=state_parks_html))
 
         result = runner.invoke(main, ["east_canyon"])
@@ -75,22 +95,23 @@ class TestLakeDataScriptCurrent:
         assert "11.1" in result.output
 
     @respx.mock
-    def test_shows_provider_name_cuwcd(self, runner, cuwcd_current_fixture, cuwcd_trend_fixture):
-        mock_deer_creek(cuwcd_current_fixture, cuwcd_trend_fixture)
+    def test_shows_provider_name_state_parks(self, runner, state_parks_html):
+        mock_deer_creek_state_parks(state_parks_html)
 
         result = runner.invoke(main, ["deer_creek"])
 
         assert result.exit_code == 0, result.output
-        assert "cuwcd" in result.output
+        assert "state_parks" in result.output.lower() or "ut_state_parks" in result.output.lower()
 
     @respx.mock
-    def test_shows_data_as_of(self, runner, cuwcd_current_fixture, cuwcd_trend_fixture):
-        mock_deer_creek(cuwcd_current_fixture, cuwcd_trend_fixture)
+    def test_shows_data_as_of(self, runner, state_parks_html):
+        mock_deer_creek_state_parks(state_parks_html)
 
         result = runner.invoke(main, ["deer_creek"])
 
         assert result.exit_code == 0, result.output
-        assert "2026-04-05" in result.output
+        # State Parks as_of is set to datetime.now() when data is parsed — just check a year
+        assert "202" in result.output
 
 
 class TestLakeDataScriptErrors:
@@ -118,7 +139,7 @@ class TestLakeDataScriptErrors:
 
     @respx.mock
     def test_http_error_propagates(self, runner):
-        respx.get(DEER_CREEK_CURRENT_URL).mock(return_value=httpx.Response(503))
+        respx.get(DEER_CREEK_STATE_PARKS_URL).mock(return_value=httpx.Response(503))
 
         result = runner.invoke(main, ["deer_creek"])
 
@@ -130,7 +151,9 @@ import matplotlib.pyplot  # noqa: E402
 
 
 class TestLakeDataScriptPlot:
-    """Plot mode — matplotlib.pyplot.show is patched to prevent a window opening."""
+    """Plot mode — matplotlib.pyplot.show is patched to prevent a window opening.
+    deer_creek has history_provider=cuwcd, so the CUWCD trend endpoint is used for -p.
+    """
 
     @respx.mock
     def test_plot_flag_runs_without_error(self, runner, cuwcd_trend_fixture, monkeypatch):

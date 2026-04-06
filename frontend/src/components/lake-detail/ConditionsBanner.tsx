@@ -20,7 +20,7 @@ export function ConditionsBanner({ conditions }: Props) {
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-ocean-700">
-          {formatWaterLevel(conditions.water_level_ft)}
+          {formatWaterLevel(conditions.water_level_ft, conditions.water_level_pct)}
         </div>
         <div className="text-sm text-gray-500 mt-1">Water Level</div>
       </div>

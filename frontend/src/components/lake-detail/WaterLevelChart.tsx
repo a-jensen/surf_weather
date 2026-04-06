@@ -5,6 +5,7 @@ import type { HistoricalPoint } from '../../api/types'
 
 interface Props {
   history: HistoricalPoint[]
+  unit?: 'ft' | '%'
 }
 
 function formatTick(ts: string) {
@@ -12,7 +13,7 @@ function formatTick(ts: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function WaterLevelChart({ history }: Props) {
+export function WaterLevelChart({ history, unit = 'ft' }: Props) {
   if (history.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 bg-gray-50 rounded-lg text-gray-400 text-sm">
@@ -39,12 +40,12 @@ export function WaterLevelChart({ history }: Props) {
         <YAxis
           domain={['auto', 'auto']}
           tick={{ fontSize: 11 }}
-          tickFormatter={(v: number) => `${v.toFixed(0)} ft`}
+          tickFormatter={(v: number) => unit === '%' ? `${v.toFixed(0)}%` : `${v.toFixed(0)} ft`}
           width={56}
         />
         <Tooltip
           labelFormatter={(label: string) => formatTick(label)}
-          formatter={(value: number) => [`${value.toFixed(2)} ft`, 'Level']}
+          formatter={(value: number) => [unit === '%' ? `${value.toFixed(1)}%` : `${value.toFixed(2)} ft`, 'Level']}
         />
         <Line
           type="monotone"

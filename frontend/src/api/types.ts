@@ -37,6 +37,7 @@ export interface LakeConditions {
   lake_id: string
   water_temp_c: number | null
   water_level_ft: number | null
+  water_level_pct: number | null
   water_level_history: HistoricalPoint[]
   water_temp_history: HistoricalPoint[]
   data_as_of: string | null
@@ -51,6 +52,7 @@ export interface LakeSummary {
   longitude: number
   current_water_temp_c: number | null
   current_water_level_ft: number | null
+  current_water_level_pct: number | null
   forecast: DailyForecast[]
 }
 

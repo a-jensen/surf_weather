@@ -15,10 +15,11 @@ class LakeConfig:
     latitude: float
     longitude: float
     usgs_site_id: Optional[str]
-    data_provider: str
+    conditions_provider: str
     cuwcd_set_name: Optional[str] = None
     state_park_slug: Optional[str] = None
     usgs_level_param: str = "00065"
+    history_provider: Optional[str] = None
 
 
 @dataclass(frozen=True)

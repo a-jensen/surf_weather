@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -27,6 +28,26 @@ def _empty_conditions(lake: LakeConfig, reason: str) -> LakeConditions:
     )
 
 
+def _merge_history(conditions: LakeConditions, registry: LakeDataProviderRegistry, lake: LakeConfig) -> LakeConditions:
+    """Overlay history from the history_provider if configured and different from the conditions provider."""
+    history_provider = registry.get_history_provider(lake)
+    if not history_provider:
+        return conditions
+    try:
+        history_data = history_provider.get_conditions(lake)
+        return dataclasses.replace(
+            conditions,
+            water_level_history=history_data.water_level_history or conditions.water_level_history,
+            water_temp_history=history_data.water_temp_history or conditions.water_temp_history,
+        )
+    except Exception:
+        logger.warning(
+            "Failed to fetch history for lake '%s' via '%s'",
+            lake.id, history_provider.provider_name,
+        )
+        return conditions
+
+
 class Aggregator:
     """Combines weather and lake data providers into API response shapes."""
 
@@ -44,8 +65,6 @@ class Aggregator:
         lakes = list(self._lakes.values())
 
         def fetch(lake: LakeConfig) -> LakeSummary | None:
-            # Fetch weather and conditions independently so one failure
-            # doesn't hide the other.
             try:
                 forecast = self._weather.get_forecast(lake)
             except Exception:
@@ -55,6 +74,7 @@ class Aggregator:
             try:
                 provider = self._registry.get_provider(lake)
                 conditions = provider.get_conditions(lake)
+                conditions = _merge_history(conditions, self._registry, lake)
             except Exception:
                 logger.exception("Failed to fetch conditions for lake '%s'", lake.id)
                 conditions = _empty_conditions(lake, "provider error")
@@ -67,6 +87,7 @@ class Aggregator:
                 longitude=lake.longitude,
                 current_water_temp_c=conditions.water_temp_c,
                 current_water_level_ft=conditions.water_level_ft,
+                current_water_level_pct=conditions.water_level_pct,
                 forecast=forecast.daily,
             )
 
@@ -92,6 +113,7 @@ class Aggregator:
 
             try:
                 conditions = conditions_future.result()
+                conditions = _merge_history(conditions, self._registry, lake)
             except Exception:
                 logger.exception("Failed to fetch conditions for lake '%s'", lake.id)
                 conditions = _empty_conditions(lake, "provider error")

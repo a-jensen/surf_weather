@@ -5,7 +5,8 @@ lakes:
     latitude: 40.4083
     longitude: -111.5297
     usgs_site_id: null
-    data_provider: cuwcd
+    conditions_provider: state_parks
+    history_provider: cuwcd
     cuwcd_set_name: public_dc
     state_park_slug: deer-creek
 
@@ -15,7 +16,7 @@ lakes:
     latitude: 41.2733
     longitude: -111.8167
     usgs_site_id: null
-    data_provider: state_parks
+    conditions_provider: state_parks
     state_park_slug: pineview
 
   - id: east_canyon
@@ -24,7 +25,7 @@ lakes:
     latitude: 40.9306
     longitude: -111.6014
     usgs_site_id: null
-    data_provider: state_parks
+    conditions_provider: state_parks
     state_park_slug: east-canyon
 
   - id: rockport
@@ -33,7 +34,7 @@ lakes:
     latitude: 40.7806
     longitude: -111.3928
     usgs_site_id: null
-    data_provider: state_parks
+    conditions_provider: state_parks
     state_park_slug: rockport
 
   - id: echo
@@ -42,7 +43,7 @@ lakes:
     latitude: 40.9653
     longitude: -111.4356
     usgs_site_id: null
-    data_provider: state_parks
+    conditions_provider: state_parks
     state_park_slug: echo
 
   - id: bear_lake
@@ -51,7 +52,7 @@ lakes:
     latitude: 41.9306
     longitude: -111.3167
     usgs_site_id: "10055000"
-    data_provider: usgs
+    conditions_provider: usgs
     usgs_level_param: "00062"
 
   - id: jordanelle
@@ -60,7 +61,8 @@ lakes:
     latitude: 40.6097
     longitude: -111.4203
     usgs_site_id: null
-    data_provider: cuwcd
+    conditions_provider: state_parks
+    history_provider: cuwcd
     cuwcd_set_name: public_jd
     state_park_slug: jordanelle
 
@@ -70,5 +72,5 @@ lakes:
     latitude: 40.1900
     longitude: -111.8000
     usgs_site_id: null
-    data_provider: cuwcd
+    conditions_provider: cuwcd
     cuwcd_set_name: public_ul

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from datetime import date, datetime, timezone
 
 import httpx
@@ -15,6 +16,8 @@ from ...models.weather import (
 from ..base import WeatherProvider
 
 BASE_URL = "https://api.open-meteo.com/v1/forecast"
+_MAX_RETRIES = 4
+_RETRY_BASE_DELAY = 1.0  # seconds; doubles each attempt
 
 
 class OpenMeteoProvider(WeatherProvider):
@@ -31,26 +34,31 @@ class OpenMeteoProvider(WeatherProvider):
         return "open_meteo"
 
     def get_forecast(self, lake: LakeConfig) -> WeatherForecast:
-        resp = self._client.get(
-            BASE_URL,
-            params={
-                "latitude": lake.latitude,
-                "longitude": lake.longitude,
-                "hourly": (
-                    "temperature_2m,wind_speed_10m,wind_direction_10m,"
-                    "precipitation_probability,weather_code,cape"
-                ),
-                "daily": (
-                    "temperature_2m_max,temperature_2m_min,"
-                    "precipitation_probability_max,wind_speed_10m_max,"
-                    "wind_direction_10m_dominant,weather_code"
-                ),
-                "forecast_days": 7,
-                "temperature_unit": "fahrenheit",
-                "wind_speed_unit": "mph",
-                "timezone": "America/Denver",
-            },
-        )
+        params = {
+            "latitude": lake.latitude,
+            "longitude": lake.longitude,
+            "hourly": (
+                "temperature_2m,wind_speed_10m,wind_direction_10m,"
+                "precipitation_probability,weather_code,cape"
+            ),
+            "daily": (
+                "temperature_2m_max,temperature_2m_min,"
+                "precipitation_probability_max,wind_speed_10m_max,"
+                "wind_direction_10m_dominant,weather_code"
+            ),
+            "forecast_days": 7,
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+            "timezone": "America/Denver",
+        }
+        resp = None
+        for attempt in range(_MAX_RETRIES):
+            resp = self._client.get(BASE_URL, params=params)
+            if resp.status_code != 429:
+                break
+            if attempt < _MAX_RETRIES - 1:
+                delay = float(resp.headers.get("Retry-After", _RETRY_BASE_DELAY * (2 ** attempt)))
+                time.sleep(delay)
         resp.raise_for_status()
         return self._parse(lake.id, resp.json())
 

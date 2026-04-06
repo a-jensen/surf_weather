@@ -20,7 +20,7 @@ def fake_lake_with_gauge() -> LakeConfig:
         latitude=40.4083,
         longitude=-111.5297,
         usgs_site_id="10159000",
-        data_provider="usgs",
+        conditions_provider="usgs",
     )
 
 
@@ -33,7 +33,7 @@ def fake_lake_no_gauge() -> LakeConfig:
         latitude=40.6097,
         longitude=-111.4203,
         usgs_site_id=None,
-        data_provider="usgs",
+        conditions_provider="usgs",
     )
 
 
@@ -147,19 +147,6 @@ def cuwcd_trend_fixture() -> dict:
                 "Name": "Current Data",
                 "Tags": [
                     {
-                        "Tag": "OREM\\DC\\ANALOG\\RES_LVL",
-                        "Metadata": {
-                            "Description": "Orem Deer Creek Reservoir Level",
-                            "ParameterDescription": "Elevation",
-                            "Units": "ft",
-                        },
-                        "Values": [
-                            {"ts": "2026-03-06T00:00:00", "val": 5405.0},
-                            {"ts": "2026-03-07T00:00:00", "val": 5406.0},
-                            {"ts": "2026-04-05T00:00:00", "val": 5410.5},
-                        ],
-                    },
-                    {
                         "Tag": "DC_CALC_PCT_FULL_FCV",
                         "Metadata": {
                             "Description": "Percent Full",
@@ -167,6 +154,8 @@ def cuwcd_trend_fixture() -> dict:
                             "Units": "%",
                         },
                         "Values": [
+                            {"ts": "2026-03-06T00:00:00", "val": 87.0},
+                            {"ts": "2026-03-07T00:00:00", "val": 88.0},
                             {"ts": "2026-04-05T00:00:00", "val": 89.05},
                         ],
                     },
