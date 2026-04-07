@@ -47,7 +47,10 @@ export function LakeDetailPage() {
 
       <section>
         <h2 className="text-lg font-semibold text-gray-700 mb-3">7-Day Forecast</h2>
-        <WeatherTable daily={detail.weather.daily} />
+        {detail.weather_error
+          ? <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">{detail.weather_error}</div>
+          : <WeatherTable daily={detail.weather.daily} />
+        }
       </section>
 
       {(() => {

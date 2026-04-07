@@ -3,15 +3,30 @@ from __future__ import annotations
 import dataclasses
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 
 from ..models.combined import LakeDetail, LakeSummary
 from ..models.lake import LakeConditions, LakeConfig
+from ..models.weather import WeatherForecast
 from ..providers.base import LakeDataProvider, WeatherProvider
 from ..providers.lake_data.registry import LakeDataProviderRegistry
 
 logger = logging.getLogger(__name__)
 
 _MAX_WORKERS = 8
+
+
+_WEATHER_UNAVAILABLE = "Weather forecast temporarily unavailable"
+
+
+def _empty_forecast(lake: LakeConfig) -> WeatherForecast:
+    return WeatherForecast(
+        lake_id=lake.id,
+        timezone="America/Denver",
+        daily=[],
+        hourly=[],
+        fetched_at=datetime.now(tz=timezone.utc).isoformat(),
+    )
 
 
 def _empty_conditions(lake: LakeConfig, reason: str) -> LakeConditions:
@@ -64,12 +79,16 @@ class Aggregator:
     def get_all_summaries(self) -> list[LakeSummary]:
         lakes = list(self._lakes.values())
 
-        def fetch(lake: LakeConfig) -> LakeSummary | None:
+        def fetch(lake: LakeConfig) -> LakeSummary:
+            weather_error: str | None = None
+            forecast_daily = []
+
             try:
                 forecast = self._weather.get_forecast(lake)
+                forecast_daily = forecast.daily
             except Exception:
                 logger.exception("Failed to fetch weather for lake '%s'", lake.id)
-                return None
+                weather_error = _WEATHER_UNAVAILABLE
 
             try:
                 provider = self._registry.get_provider(lake)
@@ -88,17 +107,18 @@ class Aggregator:
                 current_water_temp_c=conditions.water_temp_c,
                 current_water_level_ft=conditions.water_level_ft,
                 current_water_level_pct=conditions.water_level_pct,
-                forecast=forecast.daily,
+                forecast=forecast_daily,
+                weather_error=weather_error,
             )
 
-        results: dict[str, LakeSummary | None] = {}
+        results: dict[str, LakeSummary] = {}
         with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as executor:
             futures = {executor.submit(fetch, lake): lake for lake in lakes}
             for future in as_completed(futures):
                 lake = futures[future]
                 results[lake.id] = future.result()
 
-        return [results[lake.id] for lake in lakes if results.get(lake.id) is not None]
+        return [results[lake.id] for lake in lakes if lake.id in results]
 
     def get_detail(self, lake_id: str) -> LakeDetail:
         if lake_id not in self._lakes:
@@ -106,6 +126,7 @@ class Aggregator:
 
         lake = self._lakes[lake_id]
         provider = self._registry.get_provider(lake)
+        weather_error: str | None = None
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             conditions_future = executor.submit(provider.get_conditions, lake)
@@ -118,7 +139,12 @@ class Aggregator:
                 logger.exception("Failed to fetch conditions for lake '%s'", lake.id)
                 conditions = _empty_conditions(lake, "provider error")
 
-            forecast = forecast_future.result()  # propagate weather errors to caller
+            try:
+                forecast = forecast_future.result()
+            except Exception:
+                logger.exception("Failed to fetch weather for lake '%s'", lake.id)
+                weather_error = _WEATHER_UNAVAILABLE
+                forecast = _empty_forecast(lake)
 
         return LakeDetail(
             lake_id=lake.id,
@@ -128,4 +154,5 @@ class Aggregator:
             longitude=lake.longitude,
             conditions=conditions,
             weather=forecast,
+            weather_error=weather_error,
         )

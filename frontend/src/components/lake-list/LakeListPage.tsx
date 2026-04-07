@@ -16,8 +16,15 @@ export function LakeListPage() {
     )
   }
 
+  const weatherError = lakes.find(l => l.weather_error)?.weather_error ?? null
+
   return (
     <div className="space-y-4">
+      {weatherError && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+          {weatherError} — lake conditions are still shown below.
+        </div>
+      )}
       {lakes.map((lake) => (
         <LakeCard key={lake.lake_id} lake={lake} />
       ))}

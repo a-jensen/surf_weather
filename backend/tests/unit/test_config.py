@@ -98,7 +98,7 @@ class TestLoadLakes:
     def test_loads_actual_lakes_yaml(self):
         actual = Path(__file__).parent.parent.parent / "config" / "lakes.yaml"
         lakes = load_lakes(actual)
-        assert len(lakes) == 8
+        assert len(lakes) == 10
         ids = {lake.id for lake in lakes}
         assert "deer_creek" in ids
         assert "jordanelle" in ids

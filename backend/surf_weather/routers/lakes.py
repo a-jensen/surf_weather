@@ -33,6 +33,7 @@ def _summary_to_dict(s) -> dict:
         "current_water_level_ft": s.current_water_level_ft,
         "current_water_level_pct": s.current_water_level_pct,
         "forecast": [_daily_to_dict(d) for d in s.forecast],
+        "weather_error": s.weather_error,
     }
 
 
@@ -45,6 +46,7 @@ def _detail_to_dict(d) -> dict:
         "longitude": d.longitude,
         "conditions": _conditions_to_dict(d.conditions),
         "weather": _forecast_to_dict(d.weather),
+        "weather_error": d.weather_error,
     }
 
 

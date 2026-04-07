@@ -54,6 +54,7 @@ export interface LakeSummary {
   current_water_level_ft: number | null
   current_water_level_pct: number | null
   forecast: DailyForecast[]
+  weather_error: string | null
 }
 
 export interface LakeDetail {
@@ -64,4 +65,5 @@ export interface LakeDetail {
   longitude: number
   conditions: LakeConditions
   weather: WeatherForecast
+  weather_error: string | null
 }
