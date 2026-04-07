@@ -75,6 +75,15 @@ lakes:
     conditions_provider: cuwcd
     cuwcd_set_name: public_ul
 
+  - id: willard_bay
+    name: Willard Bay
+    state: UT
+    latitude: 41.3897
+    longitude: -112.0997
+    usgs_site_id: null
+    conditions_provider: state_parks
+    state_park_slug: willard-bay
+
   - id: lake_powell
     name: Lake Powell
     state: UT

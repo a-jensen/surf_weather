@@ -133,6 +133,7 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 | Bear Lake | usgs | — | Level (elevation ft) + temp; 90-day history |
 | Jordanelle Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
 | Utah Lake | cuwcd | — | Level % only; 30-day history |
+| Willard Bay | state_parks | — | Temp + level % |
 | Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |
 
 ---
