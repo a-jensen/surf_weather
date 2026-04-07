@@ -17,8 +17,8 @@ export function formatDate(isoDate: string): string {
 }
 
 export function formatWaterLevel(ft: number | null, pct: number | null = null): string {
-  if (ft !== null) return `${ft.toFixed(1)} ft`
   if (pct !== null) return `${pct.toFixed(1)}% full`
+  if (ft !== null) return `${ft.toFixed(1)} ft`
   return 'N/A'
 }
 

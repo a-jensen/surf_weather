@@ -6,6 +6,7 @@ import type { HistoricalPoint } from '../../api/types'
 interface Props {
   history: HistoricalPoint[]
   unit?: 'ft' | '%'
+  emptyMessage?: string
 }
 
 function formatTick(ts: string) {
@@ -13,11 +14,11 @@ function formatTick(ts: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function WaterLevelChart({ history, unit = 'ft' }: Props) {
+export function WaterLevelChart({ history, unit = 'ft', emptyMessage = 'No water level data available' }: Props) {
   if (history.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 bg-gray-50 rounded-lg text-gray-400 text-sm">
-        No water level data available
+        {emptyMessage}
       </div>
     )
   }

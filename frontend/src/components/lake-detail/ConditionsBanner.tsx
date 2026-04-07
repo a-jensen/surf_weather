@@ -3,9 +3,10 @@ import { formatWaterTemp, formatWaterLevel } from '../../utils/formatters'
 
 interface Props {
   conditions: LakeConditions
+  unitPreference?: 'ft' | 'pct'
 }
 
-export function ConditionsBanner({ conditions }: Props) {
+export function ConditionsBanner({ conditions, unitPreference }: Props) {
   const asOf = conditions.data_as_of
     ? new Date(conditions.data_as_of).toLocaleString()
     : null
@@ -20,7 +21,11 @@ export function ConditionsBanner({ conditions }: Props) {
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-ocean-700">
-          {formatWaterLevel(conditions.water_level_ft, conditions.water_level_pct)}
+          {unitPreference === 'ft'
+            ? (conditions.water_level_ft !== null ? `${conditions.water_level_ft.toFixed(1)} ft` : 'N/A')
+            : unitPreference === 'pct'
+            ? (conditions.water_level_pct !== null ? `${conditions.water_level_pct.toFixed(1)}% full` : 'N/A')
+            : formatWaterLevel(conditions.water_level_ft, conditions.water_level_pct)}
         </div>
         <div className="text-sm text-gray-500 mt-1">Water Level</div>
       </div>
