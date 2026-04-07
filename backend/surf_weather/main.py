@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import load_lakes
 from .providers.lake_data.cuwcd import CUWCDProvider
+from .providers.lake_data.lake_powell import LakePowellProvider
 from .providers.lake_data.registry import LakeDataProviderRegistry
 from .providers.lake_data.state_parks import StateParksProvider
 from .providers.lake_data.usgs import USGSProvider
@@ -39,6 +40,7 @@ def _build_aggregator() -> Aggregator:
 
     registry = LakeDataProviderRegistry()
     registry.register(CUWCDProvider())
+    registry.register(LakePowellProvider())
     registry.register(StateParksProvider())
     registry.register(USGSProvider())
 

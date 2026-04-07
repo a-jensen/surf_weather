@@ -35,6 +35,7 @@ surf_weather/
 | [USGS NWIS](https://api.waterdata.usgs.gov) | Water level (elevation) and water temperature — Bear Lake |
 | [CUWCD](https://api2.cuwcd.gov) | Reservoir percent-full + 30-day history — Deer Creek, Jordanelle, Utah Lake |
 | [Utah State Parks](https://stateparks.utah.gov) | Current water temperature and level % (scraped) — most Utah lakes |
+| [lakepowell.water-data.com](https://lakepowell.water-data.com) | Elevation (ft MSL), percent full, 365-day history (scraped) — Lake Powell |
 
 **Internal structure:**
 
@@ -57,6 +58,7 @@ backend/
     │       ├── usgs.py         # USGS NWIS implementation
     │       ├── cuwcd.py        # Central Utah Water Conservancy District implementation
     │       ├── state_parks.py  # Utah State Parks scraper
+    │       ├── lake_powell.py  # lakepowell.water-data.com scraper
     │       └── registry.py     # Routes each lake to conditions + history providers
     ├── routers/
     │   ├── health.py           # GET /health
@@ -131,6 +133,7 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 | Bear Lake | usgs | — | Level (elevation ft) + temp; 90-day history |
 | Jordanelle Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
 | Utah Lake | cuwcd | — | Level % only; 30-day history |
+| Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |
 
 ---
 
@@ -236,6 +239,7 @@ backend/tests/
 │   ├── test_models.py
 │   ├── test_open_meteo_provider.py   # httpx mocked via respx
 │   ├── test_usgs_provider.py         # httpx mocked via respx
+│   ├── test_lake_powell_provider.py  # httpx mocked via respx
 │   ├── test_lake_data_script.py      # CLI script tested via Click's CliRunner
 │   ├── test_registry.py
 │   ├── test_config.py

@@ -74,3 +74,11 @@ lakes:
     usgs_site_id: null
     conditions_provider: cuwcd
     cuwcd_set_name: public_ul
+
+  - id: lake_powell
+    name: Lake Powell
+    state: UT
+    latitude: 37.0579
+    longitude: -111.3051
+    usgs_site_id: null
+    conditions_provider: lake_powell
