@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 import httpx
 
@@ -8,7 +8,7 @@ from ...models.lake import HistoricalPoint, LakeConditions, LakeConfig
 from ..base import LakeDataProvider
 
 USBR_HYDRODATA_URL = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/{site_id}/json/49.json"
-HISTORY_DAYS = 90
+HISTORY_YEARS = 5
 
 
 class USBRProvider(LakeDataProvider):
@@ -18,7 +18,7 @@ class USBRProvider(LakeDataProvider):
     at www.usbr.gov/uc/water/hydrodata/reservoir_data/{site_id}/json/49.json.
 
     Each file contains the full period of record (back to ~1986). Only the
-    most recent HISTORY_DAYS days are returned as history; the latest non-null
+    most recent HISTORY_YEARS years are returned as history; the latest non-null
     entry is used as the current water level.
 
     Does not provide water temperature.
@@ -69,7 +69,8 @@ class USBRProvider(LakeDataProvider):
         resp.raise_for_status()
         payload = resp.json()
 
-        cutoff = datetime.now(tz=timezone.utc).date() - timedelta(days=HISTORY_DAYS)
+        today = datetime.now(tz=timezone.utc).date()
+        cutoff = date(today.year - HISTORY_YEARS, 1, 1)
 
         points: list[HistoricalPoint] = []
         for row in payload.get("data", []):

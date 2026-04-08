@@ -5,7 +5,6 @@ import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { ConditionsBanner } from './ConditionsBanner'
 import { WeatherTable } from './WeatherTable'
 import { WaterLevelChart } from './WaterLevelChart'
-import { WaterTempChart } from './WaterTempChart'
 
 export function LakeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -55,22 +54,11 @@ export function LakeDetailPage() {
 
       {(() => {
         const hasBothUnits = detail.conditions.water_level_ft !== null && detail.conditions.water_level_pct !== null
-        // History values are elevation ft when water_level_ft is present; pct otherwise
-        const historyIsElevation = detail.conditions.water_level_ft !== null
-        const chartHistory = levelUnit === 'pct' && historyIsElevation
-          ? []
-          : detail.conditions.water_level_history
-        const chartUnit: 'ft' | '%' = historyIsElevation ? 'ft' : '%'
-        const historyDays = detail.conditions.water_level_history.length > 0
-          ? Math.round((Date.now() - new Date(detail.conditions.water_level_history[0].timestamp).getTime()) / 86400000)
-          : null
 
         return (
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Water Level{historyDays !== null ? ` — Last ${historyDays} Days` : ''}
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-700">Water Level</h2>
               {hasBothUnits && (
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
                   <button
@@ -88,20 +76,10 @@ export function LakeDetailPage() {
                 </div>
               )}
             </div>
-            <WaterLevelChart
-              history={chartHistory}
-              unit={chartUnit}
-              emptyMessage="Historical % full data is not available for this lake"
-            />
+            <WaterLevelChart history={detail.conditions.water_level_history} />
           </section>
         )
       })()}
-
-
-      <section>
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">Water Temperature — Last 90 Days</h2>
-        <WaterTempChart history={detail.conditions.water_temp_history} />
-      </section>
     </div>
   )
 }

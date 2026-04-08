@@ -108,10 +108,10 @@ class TestUSBRProvider:
         assert result.water_level_ft == pytest.approx(4217.13)
 
     @respx.mock
-    def test_history_only_includes_last_90_days(self, willard_bay):
-        """Rows older than 90 days should be filtered out."""
+    def test_history_only_includes_last_5_years(self, willard_bay):
+        """Rows older than 5 years (before Jan 1 of current year minus 5) should be filtered out."""
         payload = _make_payload([
-            ["2020-01-01", 4200.0],   # old — excluded
+            ["2010-01-01", 4200.0],   # old — excluded
             ["2026-04-06", 4217.0],   # recent — included
             ["2026-04-07", 4217.13],  # recent — included
         ])

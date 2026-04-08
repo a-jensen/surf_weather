@@ -103,3 +103,5 @@ lakes:
     longitude: -111.3051
     usgs_site_id: null
     conditions_provider: lake_powell
+    history_provider: usbr
+    usbr_site_id: 919
