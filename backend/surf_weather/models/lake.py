@@ -20,6 +20,7 @@ class LakeConfig:
     state_park_slug: Optional[str] = None
     usgs_level_param: str = "00065"
     history_provider: Optional[str] = None
+    usbr_site_id: Optional[int] = None
 
 
 @dataclass(frozen=True)

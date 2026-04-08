@@ -36,6 +36,7 @@ surf_weather/
 | [CUWCD](https://api2.cuwcd.gov) | Reservoir percent-full + 30-day history — Deer Creek, Jordanelle, Utah Lake |
 | [Utah State Parks](https://stateparks.utah.gov) | Current water temperature and level % (scraped) — most Utah lakes |
 | [lakepowell.water-data.com](https://lakepowell.water-data.com) | Elevation (ft MSL), percent full, 365-day history (scraped) — Lake Powell |
+| [USBR HydroData](https://www.usbr.gov/uc/water/hydrodata/reservoir_data/) | Pool elevation (ft MSL) history — Pineview, East Canyon, Rockport, Echo, Willard Bay |
 
 **Internal structure:**
 
@@ -59,6 +60,7 @@ backend/
     │       ├── cuwcd.py        # Central Utah Water Conservancy District implementation
     │       ├── state_parks.py  # Utah State Parks scraper
     │       ├── lake_powell.py  # lakepowell.water-data.com scraper
+    │       ├── usbr.py         # USBR HydroData pool elevation provider
     │       └── registry.py     # Routes each lake to conditions + history providers
     ├── routers/
     │   ├── health.py           # GET /health
@@ -126,14 +128,14 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 | Lake | Conditions | History | Notes |
 |------|-----------|---------|-------|
 | Deer Creek Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
-| Pineview Reservoir | state_parks | — | Temp + level % |
-| East Canyon Reservoir | state_parks | — | Temp + level % |
-| Rockport Reservoir | state_parks | — | Temp + level % |
-| Echo Reservoir | state_parks | — | Temp + level % |
+| Pineview Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| East Canyon Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| Rockport Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| Echo Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Bear Lake | usgs | — | Level (elevation ft) + temp; 90-day history |
 | Jordanelle Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
 | Utah Lake | cuwcd | — | Level % only; 30-day history |
-| Willard Bay | state_parks | — | Temp + level % |
+| Willard Bay | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |
 
 ---
@@ -241,6 +243,7 @@ backend/tests/
 │   ├── test_open_meteo_provider.py   # httpx mocked via respx
 │   ├── test_usgs_provider.py         # httpx mocked via respx
 │   ├── test_lake_powell_provider.py  # httpx mocked via respx
+│   ├── test_usbr_provider.py         # httpx mocked via respx
 │   ├── test_lake_data_script.py      # CLI script tested via Click's CliRunner
 │   ├── test_registry.py
 │   ├── test_config.py

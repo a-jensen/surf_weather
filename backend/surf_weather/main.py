@@ -8,6 +8,7 @@ from .providers.lake_data.cuwcd import CUWCDProvider
 from .providers.lake_data.lake_powell import LakePowellProvider
 from .providers.lake_data.registry import LakeDataProviderRegistry
 from .providers.lake_data.state_parks import StateParksProvider
+from .providers.lake_data.usbr import USBRProvider
 from .providers.lake_data.usgs import USGSProvider
 from .providers.weather.registry import get_weather_provider
 from .routers import health, lakes
@@ -42,6 +43,7 @@ def _build_aggregator() -> Aggregator:
     registry.register(CUWCDProvider())
     registry.register(LakePowellProvider())
     registry.register(StateParksProvider())
+    registry.register(USBRProvider())
     registry.register(USGSProvider())
 
     return Aggregator(

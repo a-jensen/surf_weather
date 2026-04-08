@@ -17,6 +17,8 @@ lakes:
     longitude: -111.8167
     usgs_site_id: null
     conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 946
     state_park_slug: pineview
 
   - id: east_canyon
@@ -26,6 +28,8 @@ lakes:
     longitude: -111.6014
     usgs_site_id: null
     conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 940
     state_park_slug: east-canyon
 
   - id: rockport
@@ -35,6 +39,8 @@ lakes:
     longitude: -111.3928
     usgs_site_id: null
     conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 947
     state_park_slug: rockport
 
   - id: echo
@@ -44,6 +50,8 @@ lakes:
     longitude: -111.4356
     usgs_site_id: null
     conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 941
     state_park_slug: echo
 
   - id: bear_lake
@@ -82,6 +90,8 @@ lakes:
     longitude: -112.0997
     usgs_site_id: null
     conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 925
     state_park_slug: willard-bay
 
   - id: lake_powell
