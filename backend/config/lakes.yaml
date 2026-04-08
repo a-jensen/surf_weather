@@ -6,7 +6,8 @@ lakes:
     longitude: -111.5297
     usgs_site_id: null
     conditions_provider: state_parks
-    history_provider: cuwcd
+    history_provider: usbr
+    usbr_site_id: 953
     cuwcd_set_name: public_dc
     state_park_slug: deer-creek
 
@@ -70,7 +71,8 @@ lakes:
     longitude: -111.4203
     usgs_site_id: null
     conditions_provider: state_parks
-    history_provider: cuwcd
+    history_provider: usbr
+    usbr_site_id: 964
     cuwcd_set_name: public_jd
     state_park_slug: jordanelle
 

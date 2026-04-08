@@ -127,13 +127,13 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 
 | Lake | Conditions | History | Notes |
 |------|-----------|---------|-------|
-| Deer Creek Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
+| Deer Creek Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Pineview Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | East Canyon Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Rockport Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Echo Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Bear Lake | usgs | — | Level (elevation ft) + temp; 90-day history |
-| Jordanelle Reservoir | state_parks | cuwcd | Temp + level % from State Parks; 30-day history from CUWCD |
+| Jordanelle Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Utah Lake | cuwcd | — | Level % only; 30-day history |
 | Willard Bay | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |

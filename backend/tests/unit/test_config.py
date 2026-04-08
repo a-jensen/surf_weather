@@ -107,5 +107,5 @@ class TestLoadLakes:
         actual = Path(__file__).parent.parent.parent / "config" / "lakes.yaml"
         lakes = load_lakes(actual)
         deer_creek = next(l for l in lakes if l.id == "deer_creek")
-        assert deer_creek.history_provider == "cuwcd"
+        assert deer_creek.history_provider == "usbr"
         assert deer_creek.conditions_provider == "state_parks"
