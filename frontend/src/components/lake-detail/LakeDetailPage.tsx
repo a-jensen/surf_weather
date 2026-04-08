@@ -76,7 +76,10 @@ export function LakeDetailPage() {
                 </div>
               )}
             </div>
-            <WaterLevelChart history={detail.conditions.water_level_history} />
+            <WaterLevelChart
+              history={detail.conditions.water_level_history}
+              unitLabel={detail.lake_level_unit ?? undefined}
+            />
           </section>
         )
       })()}

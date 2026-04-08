@@ -21,6 +21,7 @@ class LakeConfig:
     usgs_level_param: str = "00065"
     history_provider: Optional[str] = None
     usbr_site_id: Optional[int] = None
+    lake_level_unit: Optional[str] = None
 
 
 @dataclass(frozen=True)

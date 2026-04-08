@@ -66,4 +66,5 @@ export interface LakeDetail {
   conditions: LakeConditions
   weather: WeatherForecast
   weather_error: string | null
+  lake_level_unit: string | null
 }

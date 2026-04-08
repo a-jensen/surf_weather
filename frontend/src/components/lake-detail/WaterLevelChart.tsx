@@ -6,6 +6,7 @@ import type { HistoricalPoint } from '../../api/types'
 
 interface Props {
   history: HistoricalPoint[]
+  unitLabel?: string
   emptyMessage?: string
 }
 
@@ -31,7 +32,7 @@ function formatDateLabel(mmdd: string): string {
   return `${MONTH_NAMES[parseInt(m) - 1]} ${parseInt(d)}`
 }
 
-export function WaterLevelChart({ history, emptyMessage = 'No water level data available' }: Props) {
+export function WaterLevelChart({ history, unitLabel = 'ft above sea level', emptyMessage = 'No water level data available' }: Props) {
   const byYear = useMemo(() => {
     const map: Record<number, Record<string, number>> = {}
     for (const pt of history) {
@@ -136,7 +137,7 @@ export function WaterLevelChart({ history, emptyMessage = 'No water level data a
             domain={['auto', 'auto']}
             tick={{ fontSize: 11 }}
             tickFormatter={(v: number) => v.toFixed(0)}
-            label={{ value: 'ft above sea level', angle: -90, position: 'insideLeft', offset: -4, style: { fontSize: 10, fill: '#6b7280' } }}
+            label={{ value: unitLabel, angle: -90, position: 'insideLeft', offset: -4, style: { fontSize: 10, fill: '#6b7280' } }}
             width={96}
           />
           <Tooltip

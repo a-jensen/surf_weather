@@ -155,4 +155,5 @@ class Aggregator:
             conditions=conditions,
             weather=forecast,
             weather_error=weather_error,
+            lake_level_unit=lake.lake_level_unit,
         )

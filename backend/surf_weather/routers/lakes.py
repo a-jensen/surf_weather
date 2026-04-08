@@ -47,6 +47,7 @@ def _detail_to_dict(d) -> dict:
         "conditions": _conditions_to_dict(d.conditions),
         "weather": _forecast_to_dict(d.weather),
         "weather_error": d.weather_error,
+        "lake_level_unit": d.lake_level_unit,
     }
 
 

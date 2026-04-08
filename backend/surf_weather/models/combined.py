@@ -35,3 +35,4 @@ class LakeDetail:
     conditions: LakeConditions
     weather: WeatherForecast
     weather_error: Optional[str] = None
+    lake_level_unit: Optional[str] = None
