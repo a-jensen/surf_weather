@@ -34,6 +34,7 @@ def load_lakes(path: Path = DEFAULT_LAKES_PATH) -> list[LakeConfig]:
             lake_level_unit=entry.get("lake_level_unit"),
             full_pool_elevation_ft=entry.get("full_pool_elevation_ft"),
             dead_pool_elevation_ft=entry.get("dead_pool_elevation_ft"),
+            trailwaze_sensor_id=entry.get("trailwaze_sensor_id"),
         )
         for entry in data["lakes"]
     ]

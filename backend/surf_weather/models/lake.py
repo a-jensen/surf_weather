@@ -24,6 +24,7 @@ class LakeConfig:
     lake_level_unit: Optional[str] = None
     full_pool_elevation_ft: Optional[float] = None
     dead_pool_elevation_ft: Optional[float] = None
+    trailwaze_sensor_id: Optional[str] = None
 
 
 @dataclass(frozen=True)

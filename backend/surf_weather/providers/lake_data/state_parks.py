@@ -9,6 +9,7 @@ from ...models.lake import LakeConditions, LakeConfig
 from ..base import LakeDataProvider
 
 STATE_PARKS_BASE = "https://stateparks.utah.gov/parks"
+TRAILWAZE_URL = "https://trailwaze.info/immonit/getLatestFromSensor.php?sensorId={sensor_id}"
 
 # Matches: Water Temp:</span>45° F  or  Water Temp:</span>45.5° F
 _TEMP_RE = re.compile(
@@ -20,6 +21,8 @@ _LEVEL_RE = re.compile(
     r'class="feeditem waterlevel"[^>]*>.*?<span>[^<]*</span>\s*([\d.]+)\s*%',
     re.DOTALL | re.IGNORECASE,
 )
+# Matches Trailwaze CurrentReading: "59.5° F"
+_TRAILWAZE_TEMP_RE = re.compile(r'([\d.]+)\s*°\s*F', re.IGNORECASE)
 
 
 def _f_to_c(f: float) -> float:
@@ -32,7 +35,11 @@ class StateParksProvider(LakeDataProvider):
     Parses water temperature (°F → °C) and water level (% full) from the
     WordPress widget rendered server-side on each park's current-conditions page.
 
-    Note: data is manually updated by park staff and may be days old.
+    For parks that use a Trailwaze live sensor for temperature (e.g. Sand Hollow,
+    Quail Creek), set trailwaze_sensor_id in the lake config; temperature will be
+    fetched directly from the Trailwaze API instead of parsed from HTML.
+
+    Note: water level data is manually updated by park staff and may be days old.
     """
 
     def __init__(self) -> None:
@@ -67,7 +74,11 @@ class StateParksProvider(LakeDataProvider):
         resp.raise_for_status()
         html = resp.text
 
-        temp_c = self._parse_temp(html)
+        if lake.trailwaze_sensor_id:
+            temp_c = self._fetch_trailwaze_temp(lake.trailwaze_sensor_id)
+        else:
+            temp_c = self._parse_temp(html)
+
         level_pct = self._parse_level(html)
 
         as_of = datetime.now(tz=timezone.utc) if (temp_c is not None or level_pct is not None) else None
@@ -82,6 +93,19 @@ class StateParksProvider(LakeDataProvider):
             data_as_of=as_of,
             provider_name=self.provider_name,
         )
+
+    def _fetch_trailwaze_temp(self, sensor_id: str) -> float | None:
+        url = TRAILWAZE_URL.format(sensor_id=sensor_id)
+        try:
+            resp = self._client.get(url)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("result") != "success":
+                return None
+            m = _TRAILWAZE_TEMP_RE.search(data.get("CurrentReading", ""))
+            return round(_f_to_c(float(m.group(1))), 2) if m else None
+        except Exception:
+            return None
 
     @staticmethod
     def _parse_temp(html: str) -> float | None:

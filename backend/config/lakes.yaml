@@ -108,3 +108,25 @@ lakes:
     lake_level_unit: "ft above sea level"
     full_pool_elevation_ft: 3700
     dead_pool_elevation_ft: 3370
+
+  - id: quail_creek
+    name: Quail Creek Reservoir
+    state: UT
+    latitude: 37.1067
+    longitude: -113.4017
+    usgs_site_id: null
+    conditions_provider: state_parks
+    state_park_slug: quail-creek
+    trailwaze_sensor_id: "1268505"
+    lake_level_unit: "ft above sea level"
+
+  - id: sand_hollow
+    name: Sand Hollow Reservoir
+    state: UT
+    latitude: 37.0786
+    longitude: -113.3706
+    usgs_site_id: null
+    conditions_provider: state_parks
+    state_park_slug: sand-hollow
+    trailwaze_sensor_id: "1220850"
+    lake_level_unit: "ft above sea level"
