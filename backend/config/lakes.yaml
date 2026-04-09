@@ -1,31 +1,4 @@
 lakes:
-  - id: deer_creek
-    name: Deer Creek Reservoir
-    state: UT
-    latitude: 40.4083
-    longitude: -111.5297
-    usgs_site_id: null
-    conditions_provider: state_parks
-    history_provider: usbr
-    usbr_site_id: 953
-    cuwcd_set_name: public_dc
-    state_park_slug: deer-creek
-    lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 5420
-
-  - id: pineview
-    name: Pineview Reservoir
-    state: UT
-    latitude: 41.2733
-    longitude: -111.8167
-    usgs_site_id: null
-    conditions_provider: state_parks
-    history_provider: usbr
-    usbr_site_id: 946
-    state_park_slug: pineview
-    lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 4908
-
   - id: east_canyon
     name: East Canyon Reservoir
     state: UT
@@ -38,20 +11,7 @@ lakes:
     state_park_slug: east-canyon
     lake_level_unit: "ft above sea level"
     full_pool_elevation_ft: 5706
-
-  - id: rockport
-    name: Rockport Reservoir
-    state: UT
-    latitude: 40.7806
-    longitude: -111.3928
-    usgs_site_id: null
-    conditions_provider: state_parks
-    history_provider: usbr
-    usbr_site_id: 947
-    state_park_slug: rockport
-    lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 6049
-    dead_pool_elevation_ft: 5930
+    dead_pool_elevation_ft: 5564
 
   - id: echo
     name: Echo Reservoir
@@ -67,16 +27,48 @@ lakes:
     full_pool_elevation_ft: 5560
     dead_pool_elevation_ft: 5450
 
-  - id: bear_lake
-    name: Bear Lake
+  - id: pineview
+    name: Pineview Reservoir
     state: UT
-    latitude: 41.9306
-    longitude: -111.3167
-    usgs_site_id: "10055000"
-    conditions_provider: usgs
-    usgs_level_param: "00062"
+    latitude: 41.2733
+    longitude: -111.8167
+    usgs_site_id: null
+    conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 946
+    state_park_slug: pineview
     lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 5920
+    full_pool_elevation_ft: 4908
+    dead_pool_elevation_ft: 4818
+
+  - id: deer_creek
+    name: Deer Creek Reservoir
+    state: UT
+    latitude: 40.4083
+    longitude: -111.5297
+    usgs_site_id: null
+    conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 953
+    cuwcd_set_name: public_dc
+    state_park_slug: deer-creek
+    lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 5420
+    dead_pool_elevation_ft: 5305
+
+  - id: willard_bay
+    name: Willard Bay
+    state: UT
+    latitude: 41.3897
+    longitude: -112.0997
+    usgs_site_id: null
+    conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 925
+    state_park_slug: willard-bay
+    lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 4228
+    dead_pool_elevation_ft: 4130
 
   - id: jordanelle
     name: Jordanelle Reservoir
@@ -91,31 +83,18 @@ lakes:
     state_park_slug: jordanelle
     lake_level_unit: "ft above sea level"
     full_pool_elevation_ft: 6169
+    dead_pool_elevation_ft: 5902
 
-  - id: utah_lake
-    name: Utah Lake
+  - id: bear_lake
+    name: Bear Lake
     state: UT
-    latitude: 40.1900
-    longitude: -111.8000
-    usgs_site_id: null
-    conditions_provider: cuwcd
-    history_provider: usbr
-    usbr_site_id: 3606
-    cuwcd_set_name: public_ul
-    lake_level_unit: "ft"
-
-  - id: willard_bay
-    name: Willard Bay
-    state: UT
-    latitude: 41.3897
-    longitude: -112.0997
-    usgs_site_id: null
-    conditions_provider: state_parks
-    history_provider: usbr
-    usbr_site_id: 925
-    state_park_slug: willard-bay
+    latitude: 41.9306
+    longitude: -111.3167
+    usgs_site_id: "10055000"
+    conditions_provider: usgs
+    usgs_level_param: "00062"
     lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 4228
+    full_pool_elevation_ft: 5920
 
   - id: lake_powell
     name: Lake Powell
