@@ -22,6 +22,8 @@ class LakeConfig:
     history_provider: Optional[str] = None
     usbr_site_id: Optional[int] = None
     lake_level_unit: Optional[str] = None
+    full_pool_elevation_ft: Optional[float] = None
+    dead_pool_elevation_ft: Optional[float] = None
 
 
 @dataclass(frozen=True)

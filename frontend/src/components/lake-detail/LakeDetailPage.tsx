@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLakeDetail } from '../../hooks/useLakeDetail'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
@@ -10,7 +9,6 @@ export function LakeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { detail, loading, error } = useLakeDetail(id ?? '')
-  const [levelUnit, setLevelUnit] = useState<'ft' | 'pct'>('pct')
 
   if (loading) return <LoadingSpinner />
 
@@ -42,7 +40,7 @@ export function LakeDetailPage() {
         <span className="text-gray-400 text-sm">{detail.state}</span>
       </div>
 
-      <ConditionsBanner conditions={detail.conditions} unitPreference={levelUnit} />
+      <ConditionsBanner conditions={detail.conditions} />
 
       <section>
         <h2 className="text-lg font-semibold text-gray-700 mb-3">7-Day Forecast</h2>
@@ -52,37 +50,15 @@ export function LakeDetailPage() {
         }
       </section>
 
-      {(() => {
-        const hasBothUnits = detail.conditions.water_level_ft !== null && detail.conditions.water_level_pct !== null
-
-        return (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-gray-700">Water Level</h2>
-              {hasBothUnits && (
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
-                  <button
-                    onClick={() => setLevelUnit('pct')}
-                    className={`px-3 py-1 ${levelUnit === 'pct' ? 'bg-ocean-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-                  >
-                    % Full
-                  </button>
-                  <button
-                    onClick={() => setLevelUnit('ft')}
-                    className={`px-3 py-1 border-l border-gray-200 ${levelUnit === 'ft' ? 'bg-ocean-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-                  >
-                    Elevation (ft)
-                  </button>
-                </div>
-              )}
-            </div>
-            <WaterLevelChart
-              history={detail.conditions.water_level_history}
-              unitLabel={detail.lake_level_unit ?? undefined}
-            />
-          </section>
-        )
-      })()}
+      <section>
+        <h2 className="text-lg font-semibold text-gray-700 mb-3">Water Level</h2>
+        <WaterLevelChart
+          history={detail.conditions.water_level_history}
+          unitLabel={detail.lake_level_unit ?? undefined}
+          fullPoolFt={detail.full_pool_elevation_ft ?? undefined}
+          deadPoolFt={detail.dead_pool_elevation_ft ?? undefined}
+        />
+      </section>
     </div>
   )
 }

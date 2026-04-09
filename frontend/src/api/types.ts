@@ -67,4 +67,6 @@ export interface LakeDetail {
   weather: WeatherForecast
   weather_error: string | null
   lake_level_unit: string | null
+  full_pool_elevation_ft: number | null
+  dead_pool_elevation_ft: number | null
 }

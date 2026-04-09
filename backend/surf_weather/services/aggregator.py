@@ -50,11 +50,25 @@ def _merge_history(conditions: LakeConditions, registry: LakeDataProviderRegistr
         return conditions
     try:
         history_data = history_provider.get_conditions(lake)
-        return dataclasses.replace(
-            conditions,
-            water_level_history=history_data.water_level_history or conditions.water_level_history,
-            water_temp_history=history_data.water_temp_history or conditions.water_temp_history,
-        )
+
+        overrides: dict = {
+            "water_level_history": history_data.water_level_history or conditions.water_level_history,
+            "water_temp_history": history_data.water_temp_history or conditions.water_temp_history,
+        }
+
+        # Derive % full from the latest USBR elevation when both pool elevations are known.
+        if (
+            lake.full_pool_elevation_ft is not None
+            and lake.dead_pool_elevation_ft is not None
+            and history_data.water_level_ft is not None
+        ):
+            elev = history_data.water_level_ft
+            pool_range = lake.full_pool_elevation_ft - lake.dead_pool_elevation_ft
+            pct = (elev - lake.dead_pool_elevation_ft) / pool_range * 100
+            overrides["water_level_ft"] = elev
+            overrides["water_level_pct"] = round(max(0.0, min(100.0, pct)), 2)
+
+        return dataclasses.replace(conditions, **overrides)
     except Exception:
         logger.warning(
             "Failed to fetch history for lake '%s' via '%s'",
@@ -156,4 +170,6 @@ class Aggregator:
             weather=forecast,
             weather_error=weather_error,
             lake_level_unit=lake.lake_level_unit,
+            full_pool_elevation_ft=lake.full_pool_elevation_ft,
+            dead_pool_elevation_ft=lake.dead_pool_elevation_ft,
         )

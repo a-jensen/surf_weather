@@ -11,6 +11,7 @@ lakes:
     cuwcd_set_name: public_dc
     state_park_slug: deer-creek
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 5420
 
   - id: pineview
     name: Pineview Reservoir
@@ -23,6 +24,7 @@ lakes:
     usbr_site_id: 946
     state_park_slug: pineview
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 4908
 
   - id: east_canyon
     name: East Canyon Reservoir
@@ -35,6 +37,7 @@ lakes:
     usbr_site_id: 940
     state_park_slug: east-canyon
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 5706
 
   - id: rockport
     name: Rockport Reservoir
@@ -47,6 +50,8 @@ lakes:
     usbr_site_id: 947
     state_park_slug: rockport
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 6049
+    dead_pool_elevation_ft: 5930
 
   - id: echo
     name: Echo Reservoir
@@ -59,6 +64,8 @@ lakes:
     usbr_site_id: 941
     state_park_slug: echo
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 5560
+    dead_pool_elevation_ft: 5450
 
   - id: bear_lake
     name: Bear Lake
@@ -69,6 +76,7 @@ lakes:
     conditions_provider: usgs
     usgs_level_param: "00062"
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 5920
 
   - id: jordanelle
     name: Jordanelle Reservoir
@@ -82,6 +90,7 @@ lakes:
     cuwcd_set_name: public_jd
     state_park_slug: jordanelle
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 6169
 
   - id: utah_lake
     name: Utah Lake
@@ -106,6 +115,7 @@ lakes:
     usbr_site_id: 925
     state_park_slug: willard-bay
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 4228
 
   - id: lake_powell
     name: Lake Powell
@@ -117,3 +127,5 @@ lakes:
     history_provider: usbr
     usbr_site_id: 919
     lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 3700
+    dead_pool_elevation_ft: 3370

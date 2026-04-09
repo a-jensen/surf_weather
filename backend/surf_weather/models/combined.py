@@ -36,3 +36,5 @@ class LakeDetail:
     weather: WeatherForecast
     weather_error: Optional[str] = None
     lake_level_unit: Optional[str] = None
+    full_pool_elevation_ft: Optional[float] = None
+    dead_pool_elevation_ft: Optional[float] = None

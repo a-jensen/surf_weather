@@ -32,6 +32,8 @@ def load_lakes(path: Path = DEFAULT_LAKES_PATH) -> list[LakeConfig]:
             history_provider=entry.get("history_provider"),
             usbr_site_id=entry.get("usbr_site_id"),
             lake_level_unit=entry.get("lake_level_unit"),
+            full_pool_elevation_ft=entry.get("full_pool_elevation_ft"),
+            dead_pool_elevation_ft=entry.get("dead_pool_elevation_ft"),
         )
         for entry in data["lakes"]
     ]
