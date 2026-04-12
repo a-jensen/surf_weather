@@ -11,7 +11,7 @@ export function ConditionsBanner({ conditions }: Props) {
     : null
 
   return (
-    <div className="grid grid-cols-2 gap-4 bg-ocean-50 rounded-xl p-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-ocean-50 rounded-xl p-4">
       <div className="text-center">
         <div className="text-2xl font-bold text-ocean-700">
           {formatWaterTemp(conditions.water_temp_c)}

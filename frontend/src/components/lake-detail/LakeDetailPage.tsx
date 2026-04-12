@@ -29,14 +29,14 @@ export function LakeDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <button
           onClick={() => navigate('/')}
-          className="text-ocean-600 hover:text-ocean-700 text-sm"
+          className="text-ocean-600 hover:text-ocean-700 text-sm py-1"
         >
           ← All Lakes
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">{detail.name}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{detail.name}</h1>
         <span className="text-gray-400 text-sm">{detail.state}</span>
       </div>
 

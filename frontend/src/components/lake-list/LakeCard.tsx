@@ -33,7 +33,7 @@ export function LakeCard({ lake }: Props) {
       </div>
       <div className="p-4">
         {lake.forecast.length > 0
-          ? <div className="grid grid-cols-7 gap-1">{lake.forecast.map((day) => <DayBadge key={day.date} day={day} />)}</div>
+          ? <div className="grid grid-cols-4 sm:grid-cols-7 gap-1">{lake.forecast.map((day) => <DayBadge key={day.date} day={day} />)}</div>
           : <p className="text-center text-xs text-gray-400 py-1">Forecast unavailable</p>
         }
       </div>
