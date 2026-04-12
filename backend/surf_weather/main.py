@@ -13,6 +13,7 @@ from .providers.lake_data.usgs import USGSProvider
 from .providers.weather.registry import get_weather_provider
 from .routers import health, lakes
 from .services.aggregator import Aggregator
+from .services.cache import CachingAggregator
 
 
 def create_app(aggregator: Aggregator | None = None) -> FastAPI:
@@ -46,11 +47,11 @@ def _build_aggregator() -> Aggregator:
     registry.register(USBRProvider())
     registry.register(USGSProvider())
 
-    return Aggregator(
+    return CachingAggregator(Aggregator(
         weather_provider=get_weather_provider(),
         lake_registry=registry,
         lakes=all_lakes,
-    )
+    ))
 
 
 app = create_app()
