@@ -10,6 +10,11 @@ A website for comparing weather and lake conditions across Utah wake surfing lak
 - **Lightning risk** indicator derived from WMO thunderstorm codes and CAPE (Convective Available Potential Energy)
 - **Real-time water level and temperature** from USGS stream gauges
 - **90-day historical charts** for water level and water temperature
+- **Legend dropdown** in the header explaining the Good / Fair / Poor color thresholds
+- **Pin lakes** to the top of the list; pinned and unpinned groups are each sorted independently
+- **Sort options** — default, name, warmest water, best conditions, nearest first (uses browser geolocation)
+- **User preferences persisted** — pins and sort choice survive page refreshes via `localStorage`
+- **Backend response cache** — provider data cached in-process for 15 minutes so page loads are near-instant after the first request
 - **Modular architecture** — lakes and data providers are independently configurable; adding a new state requires no structural changes
 
 ---
@@ -20,7 +25,8 @@ A website for comparing weather and lake conditions across Utah wake surfing lak
 surf_weather/
 ├── backend/          # Python FastAPI REST API
 ├── frontend/         # React + Vite SPA
-└── docker-compose.yml
+├── docker-compose.yml
+└── deploy.sh         # One-command build, push, and Cloud Run deploy
 ```
 
 ### Backend
@@ -65,10 +71,11 @@ backend/
     ├── routers/
     │   ├── health.py           # GET /health
     │   └── lakes.py            # GET /lakes, GET /lakes/{id}
-    ├── services/
-    │   └── aggregator.py       # Combines weather + lake data into response shapes
-    └── scripts/
-        └── lake_data.py        # CLI: display current conditions or plot multi-year history
+    └── services/
+        ├── aggregator.py       # Combines weather + lake data into response shapes
+        ├── cache.py            # CachingAggregator — 15-min TTL in-process cache
+        └── scripts/
+            └── lake_data.py    # CLI: display current conditions or plot multi-year history
 ```
 
 **API endpoints:**
@@ -78,6 +85,8 @@ backend/
 | `GET` | `/health` | Health check — returns `{"status": "ok"}` |
 | `GET` | `/lakes` | All lakes with current conditions and 7-day forecast strips |
 | `GET` | `/lakes/{lake_id}` | Full detail: conditions, 90-day history, complete forecast |
+
+**Caching:** `CachingAggregator` wraps the `Aggregator` and caches both `/lakes` and `/lakes/{id}` responses for 15 minutes. The first request after server start (or after the TTL expires) fetches live data; all subsequent requests within the window are served from memory. No external cache dependency — stdlib `threading.Lock` only.
 
 ### Frontend
 
@@ -91,10 +100,10 @@ frontend/src/
 │   ├── client.ts               # fetch wrapper (proxies /api → backend)
 │   └── types.ts                # TypeScript interfaces mirroring backend models
 ├── components/
-│   ├── layout/Header.tsx
+│   ├── layout/Header.tsx       # App header with Legend dropdown
 │   ├── lake-list/
-│   │   ├── LakeListPage.tsx    # Route /  — fetches GET /lakes
-│   │   ├── LakeCard.tsx        # One lake with 7-day strip
+│   │   ├── LakeListPage.tsx    # Route / — sort controls, pinned/unpinned sections
+│   │   ├── LakeCard.tsx        # One lake with pin button and 7-day strip
 │   │   └── DayBadge.tsx        # Single day: icon, temps, wind, rain %, lightning
 │   ├── lake-detail/
 │   │   ├── LakeDetailPage.tsx  # Route /lakes/:id — fetches GET /lakes/{id}
@@ -108,16 +117,27 @@ frontend/src/
 │       └── LoadingSpinner.tsx
 ├── hooks/
 │   ├── useLakes.ts             # Fetches lake list
-│   └── useLakeDetail.ts        # Fetches single lake detail
+│   ├── useLakeDetail.ts        # Fetches single lake detail
+│   ├── useUserLocation.ts      # Browser Geolocation API wrapper; persists opt-in
+│   └── usePreferences.ts       # Pins + sort choice; persists to localStorage
 └── utils/
     ├── weatherCodes.ts         # WMO code → label + icon map
     ├── formatters.ts           # Temperature, wind, date, unit conversions
-    └── lakeConditionScore.ts   # Good / Fair / Poor scoring logic
+    ├── lakeConditionScore.ts   # Good / Fair / Poor scoring logic
+    ├── distance.ts             # Haversine distance in miles
+    └── sorting.ts              # sortLakes() — applies sort option to a lake array
 ```
 
 **Routing:** React Router v6 — `/` for the lake list, `/lakes/:id` for detail.
 
 **API proxying:** In local Docker, nginx proxies `/api/*` → backend container. On Cloud Run, `BACKEND_URL` env var controls the target.
+
+**User preferences** are stored in two `localStorage` keys:
+
+| Key | Contents |
+|-----|----------|
+| `preferences` | `{ pinnedLakes: string[], sortBy: SortOption }` |
+| `sortByDistance` | Set by `useUserLocation` when location access is granted |
 
 ---
 
@@ -137,12 +157,14 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 | Utah Lake | cuwcd | — | Level % only; 30-day history |
 | Willard Bay | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |
+| Quail Creek Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| Sand Hollow Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 
 ---
 
 ## Surfing Condition Score
 
-Each day is rated based on wind and rain. Lightning always overrides to Poor.
+Each day is rated based on wind and rain. Lightning always overrides to Poor. The **Legend** button in the header shows these thresholds at a glance.
 
 | Factor | Fair | Poor |
 |--------|------|------|
@@ -172,9 +194,6 @@ python backend/scripts/lake_data.py deer_creek -p
 
 # Plot only the last 5 years
 python backend/scripts/lake_data.py deer_creek -p --years 5
-
-# List all lakes showing their conditions and history providers
-python backend/scripts/lake_data.py --list-lakes deer_creek
 ```
 
 ### Running via Docker
@@ -240,14 +259,15 @@ backend/tests/
 │   └── usgs_dv_response.json
 ├── unit/
 │   ├── test_models.py
+│   ├── test_cache.py                 # CachingAggregator TTL and thread-safety
+│   ├── test_aggregator.py
 │   ├── test_open_meteo_provider.py   # httpx mocked via respx
 │   ├── test_usgs_provider.py         # httpx mocked via respx
 │   ├── test_lake_powell_provider.py  # httpx mocked via respx
 │   ├── test_usbr_provider.py         # httpx mocked via respx
 │   ├── test_lake_data_script.py      # CLI script tested via Click's CliRunner
 │   ├── test_registry.py
-│   ├── test_config.py
-│   └── test_aggregator.py
+│   └── test_config.py
 └── integration/
     └── test_api_routes.py            # FastAPI TestClient, providers mocked
 ```
@@ -267,14 +287,16 @@ frontend/tests/
 ├── setup.ts
 ├── components/
 │   ├── DayBadge.test.tsx
-│   ├── LakeCard.test.tsx
+│   ├── LakeCard.test.tsx         # includes pin button tests
 │   └── WindIndicator.test.tsx
 ├── hooks/
-│   └── useUserLocation.test.ts
+│   ├── useUserLocation.test.ts
+│   └── usePreferences.test.ts
 └── utils/
     ├── weatherCodes.test.ts
-    ├── lakeConditionScore.test.ts
+    ├── lakeConditionScore.test.ts  # includes threshold boundary tests
     ├── distance.test.ts
+    ├── sorting.test.ts
     └── formatters.test.ts
 ```
 
@@ -338,7 +360,7 @@ from .providers.lake_data.my_state import MyStateProvider
 registry.register(MyStateProvider())
 ```
 
-3. Add lakes to `lakes.yaml` with `data_provider: my_state`.
+3. Add lakes to `lakes.yaml` with `conditions_provider: my_state`.
 
 ---
 
@@ -346,7 +368,15 @@ registry.register(MyStateProvider())
 
 Both containers are deployed as separate Cloud Run services. The frontend proxies API calls to the backend using the `BACKEND_URL` environment variable.
 
-### Prerequisites
+### One-command deploy
+
+```bash
+./deploy.sh
+```
+
+`deploy.sh` authenticates Docker with Artifact Registry, builds and pushes both images, then deploys backend followed by frontend.
+
+### Prerequisites (first time only)
 
 ```bash
 gcloud auth login
@@ -354,37 +384,24 @@ gcloud config set project surf-weather-492803
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com
 ```
 
-### Build and push images
+### Manual steps
 
 ```bash
-# Authenticate Docker (run once)
-gcloud auth configure-docker us-central1-docker.pkg.dev
-# On WSL:
+# Authenticate Docker with Artifact Registry (WSL)
 gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
 
-# Build and test locally
-docker compose up --build
-
-# Build and push all images
+# Build and push
 docker compose build
 docker compose push
-```
 
-### Deploy backend
-
-```bash
+# Deploy backend
 gcloud run deploy surf-backend \
   --image us-central1-docker.pkg.dev/surf-weather-492803/web/backend \
   --region us-central1 \
   --platform managed \
   --allow-unauthenticated
-```
 
-Backend URL: `https://surf-backend-476326886107.us-central1.run.app`
-
-### Deploy frontend
-
-```bash
+# Deploy frontend
 gcloud run deploy surf-frontend \
   --image us-central1-docker.pkg.dev/surf-weather-492803/web/frontend \
   --region us-central1 \
@@ -393,22 +410,9 @@ gcloud run deploy surf-frontend \
   --set-env-vars BACKEND_URL=https://surf-backend-476326886107.us-central1.run.app
 ```
 
-Frontend URL: `https://surf-fronted-476326886107.us-central1.run.app`
+### Live URLs
 
-### Updating a deployment
-
-```bash
-# Rebuild, push, and redeploy (backend example)
-docker compose build backend
-docker compose push backend
-gcloud run deploy surf-backend \
-  --image us-central1-docker.pkg.dev/surf-weather-492803/web/backend \
-  --region us-central1
-
-# Rebuild, push, and redeploy (frontend example)
-docker compose build frontend
-docker compose push frontend
-gcloud run deploy surf-fronted \
-  --image us-central1-docker.pkg.dev/surf-weather-492803/web/frontend \
-  --region us-central1
-```
+| Service | URL |
+|---------|-----|
+| Backend | `https://surf-backend-476326886107.us-central1.run.app` |
+| Frontend | `https://surf-fronted-476326886107.us-central1.run.app` |
