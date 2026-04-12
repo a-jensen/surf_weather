@@ -257,7 +257,7 @@ No external network calls are made during tests — all HTTP is mocked.
 ### Frontend
 
 ```bash
-docker compose run --rm frontend npm test
+docker compose --profile test run --rm frontend-test
 ```
 
 Test layout:
@@ -269,9 +269,12 @@ frontend/tests/
 │   ├── DayBadge.test.tsx
 │   ├── LakeCard.test.tsx
 │   └── WindIndicator.test.tsx
+├── hooks/
+│   └── useUserLocation.test.ts
 └── utils/
     ├── weatherCodes.test.ts
     ├── lakeConditionScore.test.ts
+    ├── distance.test.ts
     └── formatters.test.ts
 ```
 

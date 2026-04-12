@@ -61,3 +61,39 @@ describe('getLakeConditionScore', () => {
     expect(score).toBe(ConditionScore.Poor)
   })
 })
+
+describe('getLakeConditionScore — threshold boundaries', () => {
+  // Wind boundaries
+  it('returns Good at wind 14 mph (just below Fair threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ wind_speed_mph: 14 }))).toBe(ConditionScore.Good)
+  })
+
+  it('returns Fair at wind 15 mph (Fair threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ wind_speed_mph: 15 }))).toBe(ConditionScore.Fair)
+  })
+
+  it('returns Fair at wind 21 mph (just below Poor threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ wind_speed_mph: 21 }))).toBe(ConditionScore.Fair)
+  })
+
+  it('returns Poor at wind 22 mph (Poor threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ wind_speed_mph: 22 }))).toBe(ConditionScore.Poor)
+  })
+
+  // Rain boundaries
+  it('returns Good at rain 29% (just below Fair threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ precip_probability_pct: 29 }))).toBe(ConditionScore.Good)
+  })
+
+  it('returns Fair at rain 30% (Fair threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ precip_probability_pct: 30 }))).toBe(ConditionScore.Fair)
+  })
+
+  it('returns Fair at rain 59% (just below Poor threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ precip_probability_pct: 59 }))).toBe(ConditionScore.Fair)
+  })
+
+  it('returns Poor at rain 60% (Poor threshold)', () => {
+    expect(getLakeConditionScore(makeDay({ precip_probability_pct: 60 }))).toBe(ConditionScore.Poor)
+  })
+})

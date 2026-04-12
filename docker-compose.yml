@@ -34,6 +34,13 @@ services:
     networks:
       - surf_net
 
+  frontend-test:
+    build:
+      context: ./frontend
+      target: build
+    command: npm test
+    profiles: ["test"]
+
 networks:
   surf_net:
     driver: bridge
