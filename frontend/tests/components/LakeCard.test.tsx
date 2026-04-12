@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { LakeCard } from '../../src/components/lake-list/LakeCard'
 import type { LakeSummary, DailyForecast } from '../../src/api/types'
@@ -64,5 +64,37 @@ describe('LakeCard', () => {
     // Each day badge has a "Jun" date label
     const junLabels = screen.getAllByText(/Jun/)
     expect(junLabels.length).toBeGreaterThanOrEqual(7)
+  })
+})
+
+describe('LakeCard — pin button', () => {
+  it('renders no pin button when onTogglePin is not provided', () => {
+    render(<MemoryRouter><LakeCard lake={makeLake()} /></MemoryRouter>)
+    expect(screen.queryByRole('button', { name: /pin|unpin/i })).toBeNull()
+  })
+
+  it('renders a pin button when onTogglePin is provided', () => {
+    render(<MemoryRouter><LakeCard lake={makeLake()} onTogglePin={() => {}} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: /pin deer creek/i })).toBeTruthy()
+  })
+
+  it('shows "Unpin" label when isPinned is true', () => {
+    render(<MemoryRouter><LakeCard lake={makeLake()} isPinned onTogglePin={() => {}} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: /unpin deer creek/i })).toBeTruthy()
+  })
+
+  it('calls onTogglePin with the lake_id when clicked', () => {
+    const onTogglePin = vi.fn()
+    render(<MemoryRouter><LakeCard lake={makeLake()} onTogglePin={onTogglePin} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /pin deer creek/i }))
+    expect(onTogglePin).toHaveBeenCalledWith('deer_creek')
+  })
+
+  it('does not navigate when pin button is clicked', () => {
+    const onTogglePin = vi.fn()
+    render(<MemoryRouter><LakeCard lake={makeLake()} onTogglePin={onTogglePin} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /pin deer creek/i }))
+    // onTogglePin fired but URL did not change (MemoryRouter stays at /)
+    expect(window.location.pathname).toBe('/')
   })
 })

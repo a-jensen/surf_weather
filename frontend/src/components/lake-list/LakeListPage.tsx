@@ -1,12 +1,23 @@
 import { useLakes } from '../../hooks/useLakes'
 import { useUserLocation } from '../../hooks/useUserLocation'
-import { haversineDistanceMiles } from '../../utils/distance'
+import { usePreferences } from '../../hooks/usePreferences'
+import { sortLakes } from '../../utils/sorting'
+import type { SortOption } from '../../utils/sorting'
 import { LakeCard } from './LakeCard'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
+
+const SORT_LABELS: Record<SortOption, string> = {
+  default: 'Default order',
+  name: 'Name',
+  temperature: 'Warmest water',
+  conditions: 'Best conditions',
+  distance: 'Nearest first',
+}
 
 export function LakeListPage() {
   const { lakes, loading, error } = useLakes()
   const { status, coords, request, clear } = useUserLocation()
+  const { pinnedLakes, sortBy, togglePin, setSortBy } = usePreferences()
 
   if (loading) return <LoadingSpinner />
 
@@ -19,32 +30,34 @@ export function LakeListPage() {
     )
   }
 
-  const sortedLakes =
-    status === 'granted' && coords
-      ? [...lakes].sort((a, b) =>
-          haversineDistanceMiles(coords.lat, coords.lng, a.latitude, a.longitude) -
-          haversineDistanceMiles(coords.lat, coords.lng, b.latitude, b.longitude)
-        )
-      : lakes
+  function handleSortChange(newSort: SortOption) {
+    if (newSort === 'distance' && sortBy !== 'distance') request()
+    if (newSort !== 'distance' && sortBy === 'distance') clear()
+    setSortBy(newSort)
+  }
 
-  const weatherError = sortedLakes.find(l => l.weather_error)?.weather_error ?? null
+  const effectiveCoords = status === 'granted' ? coords : null
+  const pinned = sortLakes(lakes.filter(l => pinnedLakes.includes(l.lake_id)), sortBy, effectiveCoords)
+  const rest = sortLakes(lakes.filter(l => !pinnedLakes.includes(l.lake_id)), sortBy, effectiveCoords)
+
+  const weatherError = lakes.find(l => l.weather_error)?.weather_error ?? null
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        {status === 'idle' && (
-          <button
-            onClick={request}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h7m0 0V3m0 4L3 3m18 4h-7m0 0V3m0 4l7-4M3 17h7m0 0v4m0-4L3 21m18-4h-7m0 0v4m0-4l7 4" />
-            </svg>
-            Sort by distance
-          </button>
-        )}
+      {/* Controls bar */}
+      <div className="flex items-center gap-3">
+        <select
+          value={sortBy}
+          onChange={(e) => handleSortChange(e.target.value as SortOption)}
+          className="text-sm text-gray-500 bg-transparent border-none cursor-pointer hover:text-gray-700 transition-colors focus:outline-none"
+          aria-label="Sort lakes"
+        >
+          {(Object.keys(SORT_LABELS) as SortOption[]).map(opt => (
+            <option key={opt} value={opt}>{SORT_LABELS[opt]}</option>
+          ))}
+        </select>
 
-        {status === 'loading' && (
+        {sortBy === 'distance' && status === 'loading' && (
           <span className="flex items-center gap-1.5 text-sm text-gray-400">
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -53,37 +66,13 @@ export function LakeListPage() {
           </span>
         )}
 
-        {status === 'granted' && (
-          <span className="flex items-center gap-2 text-sm text-gray-500">
-            <span className="flex items-center gap-1 text-green-700">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Nearest first
-            </span>
-            <button
-              onClick={clear}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Reset sort order"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </span>
-        )}
-
-        {status === 'denied' && (
+        {sortBy === 'distance' && status === 'denied' && (
           <span className="flex items-center gap-1.5 text-sm text-gray-400">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
             </svg>
             Location access denied
           </span>
-        )}
-
-        {status === 'unavailable' && (
-          <span className="text-sm text-gray-400">Location unavailable</span>
         )}
       </div>
 
@@ -93,9 +82,25 @@ export function LakeListPage() {
         </div>
       )}
 
-      {sortedLakes.map((lake) => (
-        <LakeCard key={lake.lake_id} lake={lake} />
-      ))}
+      {/* Pinned section */}
+      {pinned.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pinned</h2>
+          {pinned.map(lake => (
+            <LakeCard key={lake.lake_id} lake={lake} isPinned onTogglePin={togglePin} />
+          ))}
+        </div>
+      )}
+
+      {/* All lakes section */}
+      <div className="space-y-4">
+        {pinned.length > 0 && (
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">All Lakes</h2>
+        )}
+        {rest.map(lake => (
+          <LakeCard key={lake.lake_id} lake={lake} isPinned={false} onTogglePin={togglePin} />
+        ))}
+      </div>
     </div>
   )
 }
