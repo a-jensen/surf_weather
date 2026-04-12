@@ -1,5 +1,6 @@
 services:
   backend:
+    image: us-central1-docker.pkg.dev/surf-weather-492803/web/backend
     build:
       context: ./backend
     ports:
@@ -8,6 +9,7 @@ services:
       - ./backend/config:/app/config:ro
     environment:
       - PYTHONUNBUFFERED=1
+      - PORT=8000
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
@@ -18,12 +20,14 @@ services:
       - surf_net
 
   frontend:
+    image: us-central1-docker.pkg.dev/surf-weather-492803/web/frontend
     build:
       context: ./frontend
     ports:
       - "8080:80"
     environment:
       - BACKEND_URL=http://backend:8000
+      - PORT=80
     depends_on:
       backend:
         condition: service_healthy

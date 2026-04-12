@@ -12,8 +12,11 @@ RUN npm run build
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# nginx.conf uses envsubst for BACKEND_URL at runtime
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# Template is processed manually so only ${PORT} and ${BACKEND_URL} are substituted,
+# leaving nginx variables like $host and $uri untouched.
+COPY nginx.conf /etc/nginx/default.conf.template
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENV PORT=8080
+ENV BACKEND_URL=http://localhost:8000
+EXPOSE 8080
+CMD ["/bin/sh", "-c", "envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

@@ -347,88 +347,65 @@ Both containers are deployed as separate Cloud Run services. The frontend proxie
 
 ```bash
 gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
+gcloud config set project surf-weather-492803
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com
 ```
 
 ### Build and push images
 
 ```bash
-# Set your project and region
-PROJECT=your-gcp-project
-REGION=us-central1
-REPO=surf-weather
+# Authenticate Docker (run once)
+gcloud auth configure-docker us-central1-docker.pkg.dev
+# On WSL:
+gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
 
-# Create Artifact Registry repo (once)
-gcloud artifacts repositories create $REPO \
-  --repository-format=docker \
-  --location=$REGION
+# Build and test locally
+docker compose up --build
 
-# Authenticate Docker
-gcloud auth configure-docker $REGION-docker.pkg.dev
-
-# Build and push backend
-docker build -t $REGION-docker.pkg.dev/$PROJECT/$REPO/backend:latest ./backend
-docker push $REGION-docker.pkg.dev/$PROJECT/$REPO/backend:latest
-
-# Build and push frontend
-docker build -t $REGION-docker.pkg.dev/$PROJECT/$REPO/frontend:latest ./frontend
-docker push $REGION-docker.pkg.dev/$PROJECT/$REPO/frontend:latest
+# Build and push all images
+docker compose build
+docker compose push
 ```
 
 ### Deploy backend
 
 ```bash
-gcloud run deploy surf-weather-backend \
-  --image $REGION-docker.pkg.dev/$PROJECT/$REPO/backend:latest \
-  --region $REGION \
+gcloud run deploy surf-backend \
+  --image us-central1-docker.pkg.dev/surf-weather-492803/web/backend \
+  --region us-central1 \
   --platform managed \
-  --no-allow-unauthenticated \
-  --port 8000
+  --allow-unauthenticated
 ```
 
-Note the service URL from the output (e.g. `https://surf-weather-backend-xxxx-uc.a.run.app`).
+Backend URL: `https://surf-backend-476326886107.us-central1.run.app`
 
 ### Deploy frontend
 
 ```bash
-BACKEND_URL=https://surf-weather-backend-xxxx-uc.a.run.app
-
-gcloud run deploy surf-weather-frontend \
-  --image $REGION-docker.pkg.dev/$PROJECT/$REPO/frontend:latest \
-  --region $REGION \
+gcloud run deploy surf-frontend \
+  --image us-central1-docker.pkg.dev/surf-weather-492803/web/frontend \
+  --region us-central1 \
   --platform managed \
   --allow-unauthenticated \
-  --port 80 \
-  --set-env-vars BACKEND_URL=$BACKEND_URL
+  --set-env-vars BACKEND_URL=https://surf-backend-476326886107.us-central1.run.app
 ```
 
-The frontend URL from the output is the public website address.
-
-### Allow frontend to call backend
-
-The backend is deployed without public access. Grant the frontend's service account permission to invoke it:
-
-```bash
-# Get the frontend's service account
-FRONTEND_SA=$(gcloud run services describe surf-weather-frontend \
-  --region $REGION --format='value(spec.template.spec.serviceAccountName)')
-
-gcloud run services add-iam-policy-binding surf-weather-backend \
-  --region $REGION \
-  --member "serviceAccount:$FRONTEND_SA" \
-  --role roles/run.invoker
-```
-
-> **Note:** The nginx proxy in the frontend container passes requests through as-is. For Cloud Run service-to-service auth you may need to configure the backend to accept the OIDC token that Cloud Run attaches — or deploy the backend as publicly accessible if internal-only access is not required for your use case.
+Frontend URL: `https://surf-fronted-476326886107.us-central1.run.app`
 
 ### Updating a deployment
 
 ```bash
 # Rebuild, push, and redeploy (backend example)
-docker build -t $REGION-docker.pkg.dev/$PROJECT/$REPO/backend:latest ./backend
-docker push $REGION-docker.pkg.dev/$PROJECT/$REPO/backend:latest
-gcloud run deploy surf-weather-backend \
-  --image $REGION-docker.pkg.dev/$PROJECT/$REPO/backend:latest \
-  --region $REGION
+docker compose build backend
+docker compose push backend
+gcloud run deploy surf-backend \
+  --image us-central1-docker.pkg.dev/surf-weather-492803/web/backend \
+  --region us-central1
+
+# Rebuild, push, and redeploy (frontend example)
+docker compose build frontend
+docker compose push frontend
+gcloud run deploy surf-fronted \
+  --image us-central1-docker.pkg.dev/surf-weather-492803/web/frontend \
+  --region us-central1
 ```
