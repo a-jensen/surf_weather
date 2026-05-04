@@ -46,7 +46,7 @@ class OpenMeteoProvider(WeatherProvider):
                 "precipitation_probability_max,wind_speed_10m_max,"
                 "wind_direction_10m_dominant,weather_code"
             ),
-            "forecast_days": 7,
+            "forecast_days": 10,
             "temperature_unit": "fahrenheit",
             "wind_speed_unit": "mph",
             "timezone": "America/Denver",
