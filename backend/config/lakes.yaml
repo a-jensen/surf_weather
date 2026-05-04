@@ -130,3 +130,29 @@ lakes:
     state_park_slug: sand-hollow
     trailwaze_sensor_id: "1220850"
     lake_level_unit: "ft above sea level"
+
+  - id: yuba
+    name: Yuba Reservoir
+    state: UT
+    latitude: 39.4006
+    longitude: -112.0281
+    usgs_site_id: null
+    conditions_provider: state_parks
+    history_provider: usbr
+    usbr_site_id: 944
+    state_park_slug: yuba
+    lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 5010
+    dead_pool_elevation_ft: 4917
+
+  - id: flaming_gorge
+    name: Flaming Gorge Reservoir
+    state: UT
+    latitude: 40.9183
+    longitude: -109.4161
+    usgs_site_id: null
+    conditions_provider: usbr
+    usbr_site_id: 912
+    lake_level_unit: "ft above sea level"
+    full_pool_elevation_ft: 6045
+    dead_pool_elevation_ft: 5760
