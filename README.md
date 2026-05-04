@@ -1,12 +1,13 @@
 # Wake Surf Weather
 
-A website for comparing weather and lake conditions across Utah wake surfing lakes. View air temperature, water temperature, wind, water level, rain chance, and lightning risk for the next 7 days — then drill into a lake for 90-day historical charts.
+A website for comparing weather and lake conditions across Utah wake surfing lakes. View air temperature, water temperature, wind, water level, rain chance, and lightning risk for the next 10 days — then drill into a lake for 90-day historical charts.
 
 ---
 
 ## Features
 
-- **7-day forecast strip** per lake with Good / Fair / Poor surfing score per day
+- **10-day forecast strip** per lake with Good / Fair / Poor surfing score per day
+- **Hourly breakdown** — click any day row in the forecast table to expand per-hour conditions, temp, wind, and rain
 - **Lightning risk** indicator derived from WMO thunderstorm codes and CAPE (Convective Available Potential Energy)
 - **Real-time water level and temperature** from USGS stream gauges
 - **90-day historical charts** for water level and water temperature
@@ -37,7 +38,7 @@ surf_weather/
 
 | API | Purpose |
 |-----|---------|
-| [Open-Meteo](https://open-meteo.com) | 7-day weather forecast — single source for all lakes |
+| [Open-Meteo](https://open-meteo.com) | 10-day weather forecast (daily + hourly) — single source for all lakes |
 | [USGS NWIS](https://api.waterdata.usgs.gov) | Water level (elevation) and water temperature — Bear Lake |
 | [CUWCD](https://api2.cuwcd.gov) | Reservoir percent-full + 30-day history — Deer Creek, Jordanelle, Utah Lake |
 | [Utah State Parks](https://stateparks.utah.gov) | Current water temperature and level % (scraped) — most Utah lakes |
@@ -83,7 +84,7 @@ backend/
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Health check — returns `{"status": "ok"}` |
-| `GET` | `/lakes` | All lakes with current conditions and 7-day forecast strips |
+| `GET` | `/lakes` | All lakes with current conditions and 10-day forecast strips |
 | `GET` | `/lakes/{lake_id}` | Full detail: conditions, 90-day history, complete forecast |
 
 **Caching:** `CachingAggregator` wraps the `Aggregator` and caches both `/lakes` and `/lakes/{id}` responses for 15 minutes. The first request after server start (or after the TTL expires) fetches live data; all subsequent requests within the window are served from memory. No external cache dependency — stdlib `threading.Lock` only.
@@ -108,7 +109,7 @@ frontend/src/
 │   ├── lake-detail/
 │   │   ├── LakeDetailPage.tsx  # Route /lakes/:id — fetches GET /lakes/{id}
 │   │   ├── ConditionsBanner.tsx
-│   │   ├── WeatherTable.tsx    # 7-day table with all stats
+│   │   ├── WeatherTable.tsx    # 10-day table; click a row to expand hourly breakdown
 │   │   ├── WaterLevelChart.tsx # Recharts 90-day gage height line chart
 │   │   └── WaterTempChart.tsx  # Recharts 90-day water temperature line chart
 │   └── shared/
@@ -159,6 +160,8 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 | Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |
 | Quail Creek Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Sand Hollow Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| Yuba Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| Flaming Gorge Reservoir | usbr | — | Level (elevation ft); 90-day elevation history |
 
 ---
 
@@ -410,9 +413,51 @@ gcloud run deploy surf-frontend \
   --set-env-vars BACKEND_URL=https://surf-backend-476326886107.us-central1.run.app
 ```
 
+### Test deployment
+
+To deploy a staging version without touching production, build and push images tagged `:test`, then deploy to separate `*-test` Cloud Run services:
+
+```bash
+REGISTRY="us-central1-docker.pkg.dev/surf-weather-492803/web"
+
+# Authenticate
+gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+
+# Build, tag, and push as :test
+docker compose build
+docker tag "${REGISTRY}/backend" "${REGISTRY}/backend:test"
+docker tag "${REGISTRY}/frontend" "${REGISTRY}/frontend:test"
+docker push "${REGISTRY}/backend:test"
+docker push "${REGISTRY}/frontend:test"
+
+# Deploy test backend
+gcloud run deploy surf-backend-test \
+  --project surf-weather-492803 \
+  --image "${REGISTRY}/backend:test" \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated
+
+# Deploy test frontend (point at test backend)
+gcloud run deploy surf-frontend-test \
+  --project surf-weather-492803 \
+  --image "${REGISTRY}/frontend:test" \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --set-env-vars BACKEND_URL=https://surf-backend-test-476326886107.us-central1.run.app
+```
+
+> **Note:** Always pass `--project surf-weather-492803` explicitly — the Artifact Registry and Cloud Run services live in that project, not the gcloud CLI default.
+
 ### Live URLs
 
 | Service | URL |
 |---------|-----|
 | Backend | `https://surf-backend-476326886107.us-central1.run.app` |
-| Frontend | `https://surf-fronted-476326886107.us-central1.run.app` |
+| Frontend | `https://surf-frontend-476326886107.us-central1.run.app` |
+
+| Service (test) | URL |
+|----------------|-----|
+| Backend (test) | `https://surf-backend-test-476326886107.us-central1.run.app` |
+| Frontend (test) | `https://surf-frontend-test-476326886107.us-central1.run.app` |
