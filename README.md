@@ -160,7 +160,7 @@ Configured in `backend/config/lakes.yaml`. Each lake specifies a `conditions_pro
 | Lake Powell | lake_powell | — | Elevation (ft MSL) + level %; 365-day history |
 | Quail Creek Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
 | Sand Hollow Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
-| Yuba Reservoir | state_parks | usbr | Temp + level %; 90-day elevation history |
+| Yuba Reservoir | state_parks | — | Temp + level % only (no elevation history available) |
 | Flaming Gorge Reservoir | usbr | — | Level (elevation ft); 90-day elevation history |
 
 ---
@@ -374,7 +374,11 @@ Both containers are deployed as separate Cloud Run services. The frontend proxie
 ### One-command deploy
 
 ```bash
+# Production
 ./deploy.sh
+
+# Test / staging (deploys to *-test Cloud Run services, production untouched)
+./deploy.sh -t
 ```
 
 `deploy.sh` authenticates Docker with Artifact Registry, builds and pushes both images, then deploys backend followed by frontend.
@@ -415,40 +419,11 @@ gcloud run deploy surf-frontend \
 
 ### Test deployment
 
-To deploy a staging version without touching production, build and push images tagged `:test`, then deploy to separate `*-test` Cloud Run services:
+Use the `-t` flag to deploy a staging version without touching production. Builds and pushes `:test`-tagged images, deploys to separate `surf-backend-test` / `surf-frontend-test` Cloud Run services:
 
 ```bash
-REGISTRY="us-central1-docker.pkg.dev/surf-weather-492803/web"
-
-# Authenticate
-gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
-
-# Build, tag, and push as :test
-docker compose build
-docker tag "${REGISTRY}/backend" "${REGISTRY}/backend:test"
-docker tag "${REGISTRY}/frontend" "${REGISTRY}/frontend:test"
-docker push "${REGISTRY}/backend:test"
-docker push "${REGISTRY}/frontend:test"
-
-# Deploy test backend
-gcloud run deploy surf-backend-test \
-  --project surf-weather-492803 \
-  --image "${REGISTRY}/backend:test" \
-  --region us-central1 \
-  --platform managed \
-  --allow-unauthenticated
-
-# Deploy test frontend (point at test backend)
-gcloud run deploy surf-frontend-test \
-  --project surf-weather-492803 \
-  --image "${REGISTRY}/frontend:test" \
-  --region us-central1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --set-env-vars BACKEND_URL=https://surf-backend-test-476326886107.us-central1.run.app
+./deploy.sh -t
 ```
-
-> **Note:** Always pass `--project surf-weather-492803` explicitly — the Artifact Registry and Cloud Run services live in that project, not the gcloud CLI default.
 
 ### Live URLs
 
