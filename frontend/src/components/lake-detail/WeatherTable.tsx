@@ -3,7 +3,7 @@ import type { DailyForecast, HourlyForecast } from '../../api/types'
 import { WeatherIcon } from '../shared/WeatherIcon'
 import { WindIndicator } from '../shared/WindIndicator'
 import { formatDate, formatTemp } from '../../utils/formatters'
-import { getLakeConditionScore, SCORE_COLORS } from '../../utils/lakeConditionScore'
+import { getLakeConditionScore, getHourlyConditionScore, SCORE_ROW_COLORS, SCORE_ROW_BG } from '../../utils/lakeConditionScore'
 import { getWeatherLabel } from '../../utils/weatherCodes'
 
 interface Props {
@@ -33,8 +33,7 @@ export function WeatherTable({ daily, hourly }: Props) {
             <th className="pb-2 pr-4">High / Low</th>
             <th className="pb-2 pr-4">Wind</th>
             <th className="pb-2 pr-4">Rain %</th>
-            <th className="pb-2 pr-4">Lightning</th>
-            <th className="pb-2">Score</th>
+            <th className="pb-2">Lightning</th>
           </tr>
         </thead>
         <tbody>
@@ -47,7 +46,7 @@ export function WeatherTable({ daily, hourly }: Props) {
               <>
                 <tr
                   key={day.date}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer select-none"
+                  className={`border-b border-gray-100 cursor-pointer select-none ${SCORE_ROW_COLORS[score]}`}
                   onClick={() => setExpandedDate(isExpanded ? null : day.date)}
                 >
                   <td className="py-2 pr-4 font-medium">
@@ -71,23 +70,18 @@ export function WeatherTable({ daily, hourly }: Props) {
                     <WindIndicator speedMph={day.wind_speed_mph} directionDeg={day.wind_direction_deg} />
                   </td>
                   <td className="py-2 pr-4">{Math.round(day.precip_probability_pct)}%</td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2">
                     {day.has_thunderstorm_risk ? (
                       <span title="Thunderstorm risk">⚡ Risk</span>
                     ) : (
                       <span className="text-gray-300">—</span>
                     )}
                   </td>
-                  <td className="py-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${SCORE_COLORS[score]}`}>
-                      {score}
-                    </span>
-                  </td>
                 </tr>
 
                 {isExpanded && dayHourly.length > 0 && (
-                  <tr key={`${day.date}-hourly`} className="bg-gray-50 border-b border-gray-100">
-                    <td colSpan={7} className="px-6 py-2">
+                  <tr key={`${day.date}-hourly`} className="border-b border-gray-100">
+                    <td colSpan={6} className="px-6 py-2">
                       <table className="min-w-full text-xs">
                         <thead>
                           <tr className="text-gray-400 border-b border-gray-200">
@@ -99,8 +93,10 @@ export function WeatherTable({ daily, hourly }: Props) {
                           </tr>
                         </thead>
                         <tbody>
-                          {dayHourly.map((h) => (
-                            <tr key={h.iso_time} className="border-b border-gray-100 last:border-0">
+                          {dayHourly.map((h) => {
+                            const hourlyScore = getHourlyConditionScore(h)
+                            return (
+                            <tr key={h.iso_time} className={`border-b border-gray-100 last:border-0 ${SCORE_ROW_BG[hourlyScore]}`}>
                               <td className="py-1 pr-4 text-gray-500">{formatHourlyTime(h.iso_time)}</td>
                               <td className="py-1 pr-4">
                                 <div className="flex items-center gap-1">
@@ -114,7 +110,7 @@ export function WeatherTable({ daily, hourly }: Props) {
                               </td>
                               <td className="py-1">{Math.round(h.precip_probability_pct)}%</td>
                             </tr>
-                          ))}
+                          )})}
                         </tbody>
                       </table>
                     </td>
