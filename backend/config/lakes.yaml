@@ -138,11 +138,9 @@ lakes:
     longitude: -112.0281
     usgs_site_id: null
     conditions_provider: state_parks
-    history_provider: usbr
-    usbr_site_id: 944
     state_park_slug: yuba
     lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 5010
+    full_pool_elevation_ft: 5100
     dead_pool_elevation_ft: 4917
 
   - id: flaming_gorge
@@ -152,7 +150,7 @@ lakes:
     longitude: -109.4161
     usgs_site_id: null
     conditions_provider: usbr
-    usbr_site_id: 912
+    usbr_site_id: 920
     lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 6045
-    dead_pool_elevation_ft: 5760
+    full_pool_elevation_ft: 6140
+    dead_pool_elevation_ft: 5740
