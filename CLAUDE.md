@@ -58,6 +58,23 @@ Edit `backend/config/lakes.yaml` — no code changes needed. Restart the backend
 docker compose restart backend
 ```
 
+### Looking up a USBR site ID
+
+USBR site IDs can be verified against the official metadata CSV, which lists every site with its name, coordinates, and state:
+
+```bash
+curl -s "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/meta.csv" | \
+  python3 -c "
+import csv, sys
+for row in csv.DictReader(sys.stdin):
+    if 'RESERVOIR NAME' in row['site_metadata.site_name'].upper():
+        print(row['site_id'], row['site_metadata.site_name'], row['site_metadata.lat'], row['site_metadata.longi'])
+        break
+"
+```
+
+Cross-check the returned lat/lon against the lake's known coordinates — elevation alone is not a reliable signal (different reservoirs can operate at similar elevations). The data file for a given site and parameter is at `https://www.usbr.gov/uc/water/hydrodata/reservoir_data/{site_id}/json/49.json` (parameter 49 = pool elevation).
+
 ## Performance Testing
 
 `perf_test.py` at the project root measures response times against the live test or production environment. Stdlib only — runs from the host without Docker.
