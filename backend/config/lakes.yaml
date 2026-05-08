@@ -152,5 +152,5 @@ lakes:
     conditions_provider: usbr
     usbr_site_id: 920
     lake_level_unit: "ft above sea level"
-    full_pool_elevation_ft: 6140
+    full_pool_elevation_ft: 6040
     dead_pool_elevation_ft: 5740

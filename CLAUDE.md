@@ -58,6 +58,21 @@ Edit `backend/config/lakes.yaml` — no code changes needed. Restart the backend
 docker compose restart backend
 ```
 
+## Performance Testing
+
+`perf_test.py` at the project root measures response times against the live test or production environment. Stdlib only — runs from the host without Docker.
+
+```bash
+python3 perf_test.py            # test environment (default)
+python3 perf_test.py --env prod # production
+python3 perf_test.py --runs 5   # more samples for a stable average
+```
+
+**Key performance facts:**
+- The `/api/lakes` summary cache and per-lake detail cache are separate — warming one does not warm the other.
+- Lake Powell is the slowest provider (~5 s cold) because it scrapes an HTML page; all others call JSON APIs.
+- Cloud Run scales to zero when idle, so the first request after a gap hits both a cold start and an empty cache.
+
 ## Key Files
 
 | File | Purpose |
@@ -65,5 +80,7 @@ docker compose restart backend
 | `backend/config/lakes.yaml` | Lake definitions — coordinates, providers, pool elevations |
 | `backend/surf_weather/providers/weather/open_meteo.py` | Weather forecast (Open-Meteo, currently 10-day) |
 | `backend/surf_weather/providers/lake_data/` | One file per data provider |
+| `backend/surf_weather/services/cache.py` | CachingAggregator — 15-min TTL; summary and detail caches are independent |
 | `frontend/src/components/lake-detail/WeatherTable.tsx` | Daily forecast table with expandable hourly rows |
 | `deploy.sh` | Deploy script — production by default, `./deploy.sh -t` for test/staging |
+| `perf_test.py` | Measures live endpoint response times; stdlib only, no Docker needed |

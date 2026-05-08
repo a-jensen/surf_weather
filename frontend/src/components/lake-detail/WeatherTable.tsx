@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import type { DailyForecast, HourlyForecast } from '../../api/types'
 import { WeatherIcon } from '../shared/WeatherIcon'
 import { WindIndicator } from '../shared/WindIndicator'
@@ -23,6 +23,16 @@ function formatHourlyTime(isoTime: string): string {
 export function WeatherTable({ daily, hourly }: Props) {
   const [expandedDate, setExpandedDate] = useState<string | null>(null)
 
+  const hourlyByDate = useMemo(() => {
+    const map: Record<string, HourlyForecast[]> = {}
+    for (const h of hourly) {
+      const date = h.iso_time.slice(0, 10)
+      if (!map[date]) map[date] = []
+      map[date].push(h)
+    }
+    return map
+  }, [hourly])
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
@@ -40,12 +50,11 @@ export function WeatherTable({ daily, hourly }: Props) {
           {daily.map((day) => {
             const score = getLakeConditionScore(day)
             const isExpanded = expandedDate === day.date
-            const dayHourly = hourly.filter((h) => h.iso_time.slice(0, 10) === day.date)
+            const dayHourly = hourlyByDate[day.date] ?? []
 
             return (
-              <>
+              <Fragment key={day.date}>
                 <tr
-                  key={day.date}
                   className={`border-b border-gray-100 cursor-pointer select-none ${SCORE_ROW_COLORS[score]}`}
                   onClick={() => setExpandedDate(isExpanded ? null : day.date)}
                 >
@@ -80,7 +89,7 @@ export function WeatherTable({ daily, hourly }: Props) {
                 </tr>
 
                 {isExpanded && dayHourly.length > 0 && (
-                  <tr key={`${day.date}-hourly`} className="border-b border-gray-100">
+                  <tr className="border-b border-gray-100">
                     <td colSpan={6} className="px-6 py-2">
                       <table className="min-w-full text-xs">
                         <thead>
@@ -116,7 +125,7 @@ export function WeatherTable({ daily, hourly }: Props) {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             )
           })}
         </tbody>

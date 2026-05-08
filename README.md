@@ -305,6 +305,34 @@ frontend/tests/
 
 ---
 
+## Performance Testing
+
+`perf_test.py` measures response times for the frontend and key backend endpoints against the live test or production environment. It uses only the Python standard library — no extra packages, no Docker required.
+
+```bash
+# Measure test environment (default)
+python3 perf_test.py
+
+# Measure production
+python3 perf_test.py --env prod
+
+# More runs for a stable average
+python3 perf_test.py --runs 5
+
+# Increase timeout for cold-start scenarios
+python3 perf_test.py --timeout 60
+```
+
+Output is a color-coded table: green < 1 s, yellow 1–3 s, red > 3 s.
+
+**What to expect:**
+
+- The first request to any endpoint after a cold start or cache expiry is slow (1–6 s) because the backend fetches live data from external APIs. Lake Powell is the slowest — its provider scrapes a full HTML page rather than calling a JSON API.
+- Subsequent requests within the 15-minute cache window are near-instant (< 0.3 s).
+- The `/api/lakes` (summary) and `/api/lakes/{id}` (detail) caches are independent — warming one does not warm the other.
+
+---
+
 ## Adding a New Lake
 
 Edit `backend/config/lakes.yaml` and add an entry:
