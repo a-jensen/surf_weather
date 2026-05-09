@@ -2,7 +2,7 @@ import { useState, useMemo, Fragment } from 'react'
 import type { DailyForecast, HourlyForecast } from '../../api/types'
 import { WeatherIcon } from '../shared/WeatherIcon'
 import { WindIndicator } from '../shared/WindIndicator'
-import { formatDate, formatTemp } from '../../utils/formatters'
+import { formatDate, formatDayOfWeek, formatTemp } from '../../utils/formatters'
 import { getLakeConditionScore, getHourlyConditionScore, SCORE_ROW_COLORS, SCORE_ROW_BG } from '../../utils/lakeConditionScore'
 import { getWeatherLabel } from '../../utils/weatherCodes'
 
@@ -58,11 +58,14 @@ export function WeatherTable({ daily, hourly }: Props) {
                   className={`border-b border-gray-100 cursor-pointer select-none ${SCORE_ROW_COLORS[score]}`}
                   onClick={() => setExpandedDate(isExpanded ? null : day.date)}
                 >
-                  <td className="py-2 pr-4 font-medium">
+                  <td className="py-2 pr-4">
                     <span className="inline-block w-4 text-gray-400 text-xs mr-1">
                       {isExpanded ? '▾' : '▸'}
                     </span>
-                    {formatDate(day.date)}
+                    <div className="inline-block">
+                      <div className="font-medium">{formatDayOfWeek(day.date)}</div>
+                      <div className="text-gray-500 text-xs">{formatDate(day.date)}</div>
+                    </div>
                   </td>
                   <td className="py-2 pr-4">
                     <div className="flex items-center gap-2">

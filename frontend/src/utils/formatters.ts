@@ -16,6 +16,12 @@ export function formatDate(isoDate: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+export function formatDayOfWeek(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const d = new Date(year, month - 1, day)
+  return d.toLocaleDateString('en-US', { weekday: 'short' })
+}
+
 export function formatWaterLevel(ft: number | null, pct: number | null = null): string {
   if (pct !== null) return `${pct.toFixed(1)}% full`
   if (ft !== null) return `${ft.toFixed(1)} ft`

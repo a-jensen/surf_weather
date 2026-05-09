@@ -1,6 +1,6 @@
 import type { DailyForecast } from '../../api/types'
 import { WeatherIcon } from '../shared/WeatherIcon'
-import { formatDate, formatTemp } from '../../utils/formatters'
+import { formatDate, formatDayOfWeek, formatTemp } from '../../utils/formatters'
 import { getLakeConditionScore, SCORE_COLORS } from '../../utils/lakeConditionScore'
 
 interface Props {
@@ -13,7 +13,8 @@ export function DayBadge({ day }: Props) {
 
   return (
     <div className={`flex flex-col items-center p-2 rounded-lg text-xs ${scoreColor}`}>
-      <span className="font-semibold">{formatDate(day.date)}</span>
+      <span className="font-semibold">{formatDayOfWeek(day.date)}</span>
+      <span>{formatDate(day.date)}</span>
       <WeatherIcon code={day.weather_code} className="text-xl my-1" />
       <span>{formatTemp(day.temp_high_f)} / {formatTemp(day.temp_low_f)}</span>
       <span className="mt-1">💧 {Math.round(day.precip_probability_pct)}%</span>

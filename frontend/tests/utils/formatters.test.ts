@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTemp, formatWind, formatDate, formatWaterTemp, celsiusToFahrenheit } from '../../src/utils/formatters'
+import { formatTemp, formatWind, formatDate, formatDayOfWeek, formatWaterTemp, celsiusToFahrenheit } from '../../src/utils/formatters'
 
 describe('formatTemp', () => {
   it('formats a temperature with degree symbol', () => {
@@ -26,6 +26,12 @@ describe('formatDate', () => {
     const result = formatDate('2024-06-01')
     expect(result).toContain('Jun')
     expect(result).toContain('1')
+  })
+})
+
+describe('formatDayOfWeek', () => {
+  it('returns short weekday name', () => {
+    expect(formatDayOfWeek('2024-06-03')).toBe('Mon')
   })
 })
 
